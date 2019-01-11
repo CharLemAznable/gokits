@@ -1,3 +1,3 @@
-module github.com/CharLemAznable/go-complex-kits
+module github.com/CharLemAznable/gokits
 
 require github.com/go-sql-driver/mysql v1.4.1
