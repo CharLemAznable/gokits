@@ -2,7 +2,6 @@ package gokits
 
 import (
     "database/sql"
-    "github.com/CharLemAznable/yaml"
     "log"
     "time"
 )
@@ -22,7 +21,7 @@ func GqlConnection(name string) *sql.DB {
 }
 
 func LoadGqlConfigFile(filename string) {
-    configFile, err := yaml.ReadFile(filename)
+    configFile, err := ReadYamlFile(filename)
     if nil != err {
         log.Println(err)
         return
@@ -32,7 +31,7 @@ func LoadGqlConfigFile(filename string) {
 }
 
 func LoadGqlConfigString(yamlconf string) {
-    configFile, err := yaml.ReadString(yamlconf)
+    configFile, err := ReadYamlString(yamlconf)
     if nil != err {
         log.Println(err)
         return
@@ -41,26 +40,26 @@ func LoadGqlConfigString(yamlconf string) {
     loadConfigYAML(configFile)
 }
 
-func loadConfigYAML(file *yaml.File) {
-    configMap, err := yaml.MapOf(file.Root, "root")
+func loadConfigYAML(file *YamlFile) {
+    configMap, err := MapOfYaml(file.Root, "root")
     if nil != err {
         log.Println(err)
         return
     }
 
     for name, node := range configMap {
-        configItemMap, err := yaml.MapOf(node, name)
+        configItemMap, err := MapOfYaml(node, name)
         if nil != err {
             log.Println(err)
             continue
         }
 
-        driverName, err := yaml.StringOf(configItemMap["DriverName"], name+".DriverName")
+        driverName, err := StringOfYaml(configItemMap["DriverName"], name+".DriverName")
         if nil != err {
             log.Println(err)
             continue
         }
-        dataSourceName, err := yaml.StringOf(configItemMap["DataSourceName"], name+".DataSourceName")
+        dataSourceName, err := StringOfYaml(configItemMap["DataSourceName"], name+".DataSourceName")
         if nil != err {
             log.Println(err)
             continue
@@ -72,15 +71,15 @@ func loadConfigYAML(file *yaml.File) {
             continue
         }
 
-        maxOpenConns, err := yaml.IntOf(configItemMap["MaxOpenConns"], name+".MaxOpenConns")
+        maxOpenConns, err := IntOfYaml(configItemMap["MaxOpenConns"], name+".MaxOpenConns")
         if nil == err {
             db.SetMaxOpenConns(int(maxOpenConns))
         }
-        maxIdleConns, err := yaml.IntOf(configItemMap["MaxIdleConns"], name+".MaxIdleConns")
+        maxIdleConns, err := IntOfYaml(configItemMap["MaxIdleConns"], name+".MaxIdleConns")
         if nil == err {
             db.SetMaxIdleConns(int(maxIdleConns))
         }
-        connMaxLifetime, err := yaml.IntOf(configItemMap["ConnMaxLifetime"], name+".ConnMaxLifetime")
+        connMaxLifetime, err := IntOfYaml(configItemMap["ConnMaxLifetime"], name+".ConnMaxLifetime")
         if nil == err {
             db.SetConnMaxLifetime(time.Second * time.Duration(connMaxLifetime))
         }
