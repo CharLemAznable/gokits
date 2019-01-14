@@ -169,7 +169,7 @@ var parseTests = []struct {
     },
 }
 
-func TestParse(t *testing.T) {
+func TestYamlParse(t *testing.T) {
     for idx, test := range parseTests {
         buf := bytes.NewBufferString(test.Input)
         node, err := YamlParse(buf)
@@ -201,7 +201,7 @@ var getTypeTests = []struct {
     },
 }
 
-func TestGetType(t *testing.T) {
+func TestYamlGetType(t *testing.T) {
     for idx, test := range getTypeTests {
         v, s := getType([]byte(test.Value))
         if got, want := v, test.Type; got != want {

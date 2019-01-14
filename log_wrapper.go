@@ -9,136 +9,141 @@ import (
     "strings"
 )
 
+type logWrapper struct {
+    logger Logger
+}
+
 var (
-    Global Logger
+    LOG logWrapper
 )
 
 func init() {
-    Global = NewDefaultLogger(DEBUG)
+    LOG = logWrapper{}
+    LOG.logger = NewDefaultLogger(DEBUG)
 }
 
 // Wrapper for (*Logger).LoadConfiguration
-func LoadConfiguration(filename string) {
-    Global.LoadConfiguration(filename)
+func (wrapper logWrapper) LoadConfiguration(filename string) {
+    wrapper.logger.LoadConfiguration(filename)
 }
 
 // Wrapper for (*Logger).AddFilter
-func AddFilter(name string, lvl level, writer LogWriter) {
-    Global.AddFilter(name, lvl, writer)
+func (wrapper logWrapper) AddFilter(name string, lvl level, writer LogWriter) {
+    wrapper.logger.AddFilter(name, lvl, writer)
 }
 
 // Wrapper for (*Logger).Close (closes and removes all logwriters)
-func Close() {
-    Global.Close()
+func (wrapper logWrapper) Close() {
+    wrapper.logger.Close()
 }
 
-func Crash(args ...interface{}) {
+func (wrapper logWrapper) Crash(args ...interface{}) {
     if len(args) > 0 {
-        Global.intLogf(CRITICAL, strings.Repeat(" %v", len(args))[1:], args...)
+        wrapper.logger.intLogf(CRITICAL, strings.Repeat(" %v", len(args))[1:], args...)
     }
     panic(args)
 }
 
 // Logs the given message and crashes the program
-func Crashf(format string, args ...interface{}) {
-    Global.intLogf(CRITICAL, format, args...)
-    Global.Close() // so that hopefully the messages get logged
+func (wrapper logWrapper) Crashf(format string, args ...interface{}) {
+    wrapper.logger.intLogf(CRITICAL, format, args...)
+    wrapper.logger.Close() // so that hopefully the messages get logged
     panic(fmt.Sprintf(format, args...))
 }
 
 // Compatibility with `log`
-func Exit(args ...interface{}) {
+func (wrapper logWrapper) Exit(args ...interface{}) {
     if len(args) > 0 {
-        Global.intLogf(ERROR, strings.Repeat(" %v", len(args))[1:], args...)
+        wrapper.logger.intLogf(ERROR, strings.Repeat(" %v", len(args))[1:], args...)
     }
-    Global.Close() // so that hopefully the messages get logged
+    wrapper.logger.Close() // so that hopefully the messages get logged
     os.Exit(0)
 }
 
 // Compatibility with `log`
-func Exitf(format string, args ...interface{}) {
-    Global.intLogf(ERROR, format, args...)
-    Global.Close() // so that hopefully the messages get logged
+func (wrapper logWrapper) Exitf(format string, args ...interface{}) {
+    wrapper.logger.intLogf(ERROR, format, args...)
+    wrapper.logger.Close() // so that hopefully the messages get logged
     os.Exit(0)
 }
 
 // Compatibility with `log`
-func Stderr(args ...interface{}) {
+func (wrapper logWrapper) Stderr(args ...interface{}) {
     if len(args) > 0 {
-        Global.intLogf(ERROR, strings.Repeat(" %v", len(args))[1:], args...)
+        wrapper.logger.intLogf(ERROR, strings.Repeat(" %v", len(args))[1:], args...)
     }
 }
 
 // Compatibility with `log`
-func Stderrf(format string, args ...interface{}) {
-    Global.intLogf(ERROR, format, args...)
+func (wrapper logWrapper) Stderrf(format string, args ...interface{}) {
+    wrapper.logger.intLogf(ERROR, format, args...)
 }
 
 // Compatibility with `log`
-func Stdout(args ...interface{}) {
+func (wrapper logWrapper) Stdout(args ...interface{}) {
     if len(args) > 0 {
-        Global.intLogf(INFO, strings.Repeat(" %v", len(args))[1:], args...)
+        wrapper.logger.intLogf(INFO, strings.Repeat(" %v", len(args))[1:], args...)
     }
 }
 
 // Compatibility with `log`
-func Stdoutf(format string, args ...interface{}) {
-    Global.intLogf(INFO, format, args...)
+func (wrapper logWrapper) Stdoutf(format string, args ...interface{}) {
+    wrapper.logger.intLogf(INFO, format, args...)
 }
 
 // Send a log message manually
 // Wrapper for (*Logger).Log
-func Log(lvl level, source, message string) {
-    Global.Log(lvl, source, message)
+func (wrapper logWrapper) Log(lvl level, source, message string) {
+    wrapper.logger.Log(lvl, source, message)
 }
 
 // Send a formatted log message easily
 // Wrapper for (*Logger).Logf
-func Logf(lvl level, format string, args ...interface{}) {
-    Global.intLogf(lvl, format, args...)
+func (wrapper logWrapper) Logf(lvl level, format string, args ...interface{}) {
+    wrapper.logger.intLogf(lvl, format, args...)
 }
 
 // Send a closure log message
 // Wrapper for (*Logger).Logc
-func Logc(lvl level, closure func() string) {
-    Global.intLogc(lvl, closure)
+func (wrapper logWrapper) Logc(lvl level, closure func() string) {
+    wrapper.logger.intLogc(lvl, closure)
 }
 
 // Utility for finest log messages (see Debug() for parameter explanation)
 // Wrapper for (*Logger).Finest
-func Finest(arg0 interface{}, args ...interface{}) {
+func (wrapper logWrapper) Finest(arg0 interface{}, args ...interface{}) {
     const (
         lvl = FINEST
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
     case func() string:
         // Log the closure (no other arguments used)
-        Global.intLogc(lvl, first)
+        wrapper.logger.intLogc(lvl, first)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
     }
 }
 
 // Utility for fine log messages (see Debug() for parameter explanation)
 // Wrapper for (*Logger).Fine
-func Fine(arg0 interface{}, args ...interface{}) {
+func (wrapper logWrapper) Fine(arg0 interface{}, args ...interface{}) {
     const (
         lvl = FINE
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
     case func() string:
         // Log the closure (no other arguments used)
-        Global.intLogc(lvl, first)
+        wrapper.logger.intLogc(lvl, first)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
     }
 }
 
@@ -147,81 +152,81 @@ func Fine(arg0 interface{}, args ...interface{}) {
 // When given a closure of type func()string, this logs the string returned by the closure iff it will be logged.  The closure runs at most one time.
 // When given anything else, the log message will be each of the arguments formatted with %v and separated by spaces (ala Sprint).
 // Wrapper for (*Logger).Debug
-func Debug(arg0 interface{}, args ...interface{}) {
+func (wrapper logWrapper) Debug(arg0 interface{}, args ...interface{}) {
     const (
         lvl = DEBUG
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
     case func() string:
         // Log the closure (no other arguments used)
-        Global.intLogc(lvl, first)
+        wrapper.logger.intLogc(lvl, first)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
     }
 }
 
 // Utility for trace log messages (see Debug() for parameter explanation)
 // Wrapper for (*Logger).Trace
-func Trace(arg0 interface{}, args ...interface{}) {
+func (wrapper logWrapper) Trace(arg0 interface{}, args ...interface{}) {
     const (
         lvl = TRACE
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
     case func() string:
         // Log the closure (no other arguments used)
-        Global.intLogc(lvl, first)
+        wrapper.logger.intLogc(lvl, first)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
     }
 }
 
 // Utility for info log messages (see Debug() for parameter explanation)
 // Wrapper for (*Logger).Info
-func Info(arg0 interface{}, args ...interface{}) {
+func (wrapper logWrapper) Info(arg0 interface{}, args ...interface{}) {
     const (
         lvl = INFO
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
     case func() string:
         // Log the closure (no other arguments used)
-        Global.intLogc(lvl, first)
+        wrapper.logger.intLogc(lvl, first)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(arg0)+strings.Repeat(" %v", len(args)), args...)
     }
 }
 
 // Utility for warn log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
 // These functions will execute a closure exactly once, to build the error message for the return
 // Wrapper for (*Logger).Warn
-func Warn(arg0 interface{}, args ...interface{}) error {
+func (wrapper logWrapper) Warn(arg0 interface{}, args ...interface{}) error {
     const (
         lvl = WARNING
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
         return errors.New(fmt.Sprintf(first, args...))
     case func() string:
         // Log the closure (no other arguments used)
         str := first()
-        Global.intLogf(lvl, "%s", str)
+        wrapper.logger.intLogf(lvl, "%s", str)
         return errors.New(str)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
         return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
     }
     return nil
@@ -230,23 +235,23 @@ func Warn(arg0 interface{}, args ...interface{}) error {
 // Utility for error log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
 // These functions will execute a closure exactly once, to build the error message for the return
 // Wrapper for (*Logger).Error
-func Error(arg0 interface{}, args ...interface{}) error {
+func (wrapper logWrapper) Error(arg0 interface{}, args ...interface{}) error {
     const (
         lvl = ERROR
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
         return errors.New(fmt.Sprintf(first, args...))
     case func() string:
         // Log the closure (no other arguments used)
         str := first()
-        Global.intLogf(lvl, "%s", str)
+        wrapper.logger.intLogf(lvl, "%s", str)
         return errors.New(str)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
         return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
     }
     return nil
@@ -255,23 +260,23 @@ func Error(arg0 interface{}, args ...interface{}) error {
 // Utility for critical log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
 // These functions will execute a closure exactly once, to build the error message for the return
 // Wrapper for (*Logger).Critical
-func Critical(arg0 interface{}, args ...interface{}) error {
+func (wrapper logWrapper) Critical(arg0 interface{}, args ...interface{}) error {
     const (
         lvl = CRITICAL
     )
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string
-        Global.intLogf(lvl, first, args...)
+        wrapper.logger.intLogf(lvl, first, args...)
         return errors.New(fmt.Sprintf(first, args...))
     case func() string:
         // Log the closure (no other arguments used)
         str := first()
-        Global.intLogf(lvl, "%s", str)
+        wrapper.logger.intLogf(lvl, "%s", str)
         return errors.New(str)
     default:
         // Build a format string so that it will be similar to Sprint
-        Global.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
+        wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
         return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
     }
     return nil

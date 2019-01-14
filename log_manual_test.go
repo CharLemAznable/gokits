@@ -65,13 +65,13 @@ func TestFileLogWriter_Manual(t *testing.T) {
 
 func TestXMLConfigurationExample(t *testing.T) {
     // Load the configuration (isn't this easy?)
-    LoadConfiguration("logmanual_test_example.xml")
+    LOG.LoadConfiguration("log_manual_test_example.xml")
 
     // And now we're ready!
-    Finest("This will only go to those of you really cool UDP kids!  If you change enabled=true.")
-    Debug("Oh no!  %d + %d = %d!", 2, 2, 2+2)
-    Info("About that time, eh chaps?")
-    Close()
+    LOG.Finest("This will only go to those of you really cool UDP kids!  If you change enabled=true.")
+    LOG.Debug("Oh no!  %d + %d = %d!", 2, 2, 2+2)
+    LOG.Info("About that time, eh chaps?")
+    LOG.Close()
 
     time.Sleep(time.Second * 3)
     os.Remove("test.log")

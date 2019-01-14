@@ -28,7 +28,7 @@ type xmlLoggerConfig struct {
     Filter []xmlFilter `xml:"filter"`
 }
 
-// Load XML configuration; see logmanual_test_example.xml for documentation
+// Load XML configuration; see log_manual_test_example.xml for documentation
 func (log Logger) LoadConfiguration(filename string) {
     log.Close()
 
@@ -127,7 +127,7 @@ func (log Logger) LoadConfiguration(filename string) {
             continue
         }
 
-        log[xmlfilt.Tag] = &Filter{lvl, filt}
+        log[xmlfilt.Tag] = &LogFilter{lvl, filt}
     }
 }
 

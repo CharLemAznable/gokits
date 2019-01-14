@@ -12,7 +12,7 @@ type Gql struct {
 func NewGql(connName string) (*Gql, error) {
     connection := GqlConnection(connName)
     if nil == connection {
-        return nil, &UnknownConnectionName{Name: connName}
+        return nil, &UnknownGqlConnectionName{Name: connName}
     }
     gql := new(Gql)
     gql.conn = connection

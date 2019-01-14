@@ -61,7 +61,7 @@ var configGetTests = []struct {
     {"config.admin[2].username", "", `yaml: .config.admin[2].username: ".config.admin[2]" not found`},
 }
 
-func TestGet(t *testing.T) {
+func TestYamlGet(t *testing.T) {
     config := ConfigYamlString(dummyConfigFile)
 
     for _, test := range configGetTests {
@@ -118,7 +118,7 @@ var configGetOfTests = []struct {
     {"config.admin[2].username", "", `yaml: config.admin[2].username: type mismatch: "config.admin[2].username" is <nil>, want gokits.YamlScalar (at "$")`},
 }
 
-func TestGetOf(t *testing.T) {
+func TestYamlGetOf(t *testing.T) {
     config := ConfigYamlString(dummyConfigFile)
 
     for _, test := range configGetOfTests {
@@ -158,7 +158,7 @@ func TestGetOf(t *testing.T) {
     }
 }
 
-func TestCountAndRequire(t *testing.T) {
+func TestYamlCountAndRequire(t *testing.T) {
     config := ConfigYamlString(dummyConfigFile)
 
     count, err := config.Count("list")
@@ -172,7 +172,7 @@ func TestCountAndRequire(t *testing.T) {
     }
 }
 
-func TestTypes(t *testing.T) {
+func TestYamlTypes(t *testing.T) {
     config := ConfigYamlString(dummyConfigFile)
 
     mapping, _ := config.GetMap("mapping")

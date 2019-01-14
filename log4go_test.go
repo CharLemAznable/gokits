@@ -260,7 +260,7 @@ func TestLogOutput(t *testing.T) {
     }
 }
 
-func TestCountMallocs(t *testing.T) {
+func TestLogCountMallocs(t *testing.T) {
     const N = 1
     var m runtime.MemStats
     getMallocs := func() uint64 {

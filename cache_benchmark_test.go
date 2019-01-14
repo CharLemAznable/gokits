@@ -14,7 +14,7 @@ import (
     "time"
 )
 
-func BenchmarkNotFoundAdd(b *testing.B) {
+func BenchmarkCacheNotFoundAdd(b *testing.B) {
     table := CacheExpireAfterAccess("testNotFoundAdd")
 
     var finish sync.WaitGroup

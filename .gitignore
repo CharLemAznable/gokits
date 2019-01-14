@@ -14,7 +14,7 @@
 .DS_Store
 .idea
 gql_test.go
-gqlconn_test.go
+gql_conn_test.go
 httpreq_test.go
 vendor
 go.sum

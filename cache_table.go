@@ -188,7 +188,7 @@ func (table *CacheTable) Add(key interface{}, lifeSpan time.Duration, data inter
 func (table *CacheTable) deleteInternal(key interface{}) (*CacheItem, error) {
     r, ok := table.items[key]
     if !ok {
-        return nil, ErrKeyNotFound
+        return nil, ErrCacheKeyNotFound
     }
 
     // Cache value so we don't keep blocking the mutex.
@@ -269,11 +269,11 @@ func (table *CacheTable) LoadingAdd(key interface{}, args ...interface{}) (*Cach
 
         table.Unlock()
         if err == nil {
-            err = ErrKeyNotFoundOrLoadable
+            err = ErrCacheKeyNotFoundOrLoadable
         }
         return nil, err
     }
-    return nil, ErrKeyNotFound
+    return nil, ErrCacheKeyNotFound
 }
 
 // Value returns an item from the cache and marks it to be kept alive. You can

@@ -120,16 +120,16 @@ type LogWriter interface {
 
 /****** Logger ******/
 
-// A Filter represents the log level below which no log records are written to
+// A LogFilter represents the log level below which no log records are written to
 // the associated LogWriter.
-type Filter struct {
+type LogFilter struct {
     Level level
     LogWriter
 }
 
 // A Logger represents a collection of Filters through which log messages are
 // written.
-type Logger map[string]*Filter
+type Logger map[string]*LogFilter
 
 // Create a new logger.
 func NewLogger() Logger {
@@ -140,7 +140,7 @@ func NewLogger() Logger {
 // or above lvl to standard output.
 func NewDefaultLogger(lvl level) Logger {
     return Logger{
-        "stdout": &Filter{lvl, NewConsoleLogWriter()},
+        "stdout": &LogFilter{lvl, NewConsoleLogWriter()},
     }
 }
 
@@ -160,7 +160,7 @@ func (log Logger) Close() {
 // higher.  This function should not be called from multiple goroutines.
 // Returns the logger for chaining.
 func (log Logger) AddFilter(name string, lvl level, writer LogWriter) Logger {
-    log[name] = &Filter{lvl, writer}
+    log[name] = &LogFilter{lvl, writer}
     return log
 }
 

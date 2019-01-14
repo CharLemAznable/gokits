@@ -119,7 +119,7 @@ yahoo:
     },
 }
 
-func TestRender(t *testing.T) {
+func TestYamlRender(t *testing.T) {
     for idx, test := range stringTests {
         if got, want := YamlRender(test.Tree), test.Expect; got != want {
             t.Errorf("%d. got:\n%s\n%d. want:\n%s\n", idx, got, idx, want)

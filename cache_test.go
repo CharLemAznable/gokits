@@ -83,7 +83,7 @@ func TestCacheExpire(t *testing.T) {
     }
 }
 
-func TestExists(t *testing.T) {
+func TestCacheExists(t *testing.T) {
     // add an expiring item
     table := CacheExpireAfterAccess("testExists")
     table.Add(k, 0, v)
@@ -93,7 +93,7 @@ func TestExists(t *testing.T) {
     }
 }
 
-func TestNotFoundAdd(t *testing.T) {
+func TestCacheNotFoundAdd(t *testing.T) {
     table := CacheExpireAfterAccess("testNotFoundAdd")
 
     if !table.NotFoundAdd(k, 0, v) {
@@ -105,7 +105,7 @@ func TestNotFoundAdd(t *testing.T) {
     }
 }
 
-func TestNotFoundAddConcurrency(t *testing.T) {
+func TestCacheNotFoundAddConcurrency(t *testing.T) {
     table := CacheExpireAfterAccess("testNotFoundAdd")
 
     var finish sync.WaitGroup
@@ -168,7 +168,7 @@ func TestCacheKeepAlive(t *testing.T) {
     }
 }
 
-func TestDelete(t *testing.T) {
+func TestCacheDelete(t *testing.T) {
     // add an item to the cache
     table := CacheExpireAfterAccess("testDelete")
     table.Add(k, 0, v)
@@ -192,7 +192,7 @@ func TestDelete(t *testing.T) {
     }
 }
 
-func TestFlush(t *testing.T) {
+func TestCacheFlush(t *testing.T) {
     // add an item to the cache
     table := CacheExpireAfterAccess("testFlush")
     table.Add(k, 10*time.Second, v)
@@ -210,7 +210,7 @@ func TestFlush(t *testing.T) {
     }
 }
 
-func TestCount(t *testing.T) {
+func TestCacheCount(t *testing.T) {
     // add a huge amount of items to the cache
     table := CacheExpireAfterAccess("testCount")
     count := 100000
@@ -232,7 +232,7 @@ func TestCount(t *testing.T) {
     }
 }
 
-func TestDataLoader(t *testing.T) {
+func TestCacheDataLoader(t *testing.T) {
     // setup a cache with a configured data-loader
     table := CacheExpireAfterAccess("testDataLoader")
     table.SetDataLoader(func(key interface{}, args ...interface{}) (*CacheItem, error) {
@@ -263,7 +263,7 @@ func TestDataLoader(t *testing.T) {
     }
 }
 
-func TestAccessCount(t *testing.T) {
+func TestCacheAccessCount(t *testing.T) {
     // add 100 items to the cache
     count := 100
     table := CacheExpireAfterAccess("testAccessCount")
@@ -293,7 +293,7 @@ func TestAccessCount(t *testing.T) {
     }
 }
 
-func TestCallbacks(t *testing.T) {
+func TestCacheCallbacks(t *testing.T) {
     var m sync.Mutex
     addedKey := ""
     removedKey := ""

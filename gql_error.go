@@ -2,10 +2,10 @@ package gokits
 
 import "fmt"
 
-type UnknownConnectionName struct {
+type UnknownGqlConnectionName struct {
     Name string
 }
 
-func (e *UnknownConnectionName) Error() string {
+func (e *UnknownGqlConnectionName) Error() string {
     return fmt.Sprintf("gql: Unknown connection named: %s", e.Name)
 }
