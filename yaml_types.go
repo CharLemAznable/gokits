@@ -58,17 +58,17 @@ func (node YamlMap) write(out io.Writer, firstind, nextind int) {
 
     for _, key := range scalarkeys {
         value := node[key].(YamlScalar)
-        out.Write(indent[:ind])
-        fmt.Fprintf(out, "%-*s %s\n", width+1, key+":", string(value))
+        _, _ = out.Write(indent[:ind])
+        _, _ = fmt.Fprintf(out, "%-*s %s\n", width+1, key+":", string(value))
         ind = nextind
     }
     for _, key := range objectkeys {
-        out.Write(indent[:ind])
+        _, _ = out.Write(indent[:ind])
         if node[key] == nil {
-            fmt.Fprintf(out, "%s: <nil>\n", key)
+            _, _ = fmt.Fprintf(out, "%s: <nil>\n", key)
             continue
         }
-        fmt.Fprintf(out, "%s:\n", key)
+        _, _ = fmt.Fprintf(out, "%s:\n", key)
         ind = nextind
         node[key].write(out, ind+2, ind+2)
     }
@@ -95,8 +95,8 @@ func (node YamlList) write(out io.Writer, firstind, nextind int) {
     ind := firstind
 
     for _, value := range node {
-        out.Write(indent[:ind])
-        fmt.Fprint(out, "- ")
+        _, _ = out.Write(indent[:ind])
+        _, _ = fmt.Fprint(out, "- ")
         ind = nextind
         value.write(out, 0, ind+2)
     }
@@ -137,7 +137,7 @@ func (node YamlScalar) Bool() (bool, error) {
 }
 
 func (node YamlScalar) write(out io.Writer, ind, _ int) {
-    fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
+    _, _ = fmt.Fprintf(out, "%s%s\n", strings.Repeat(" ", ind), string(node))
 }
 
 // YamlRender returns a string of the node as a YAML document.  Note that

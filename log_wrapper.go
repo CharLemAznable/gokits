@@ -229,7 +229,6 @@ func (wrapper logWrapper) Warn(arg0 interface{}, args ...interface{}) error {
         wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
         return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
     }
-    return nil
 }
 
 // Utility for error log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -254,7 +253,6 @@ func (wrapper logWrapper) Error(arg0 interface{}, args ...interface{}) error {
         wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
         return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
     }
-    return nil
 }
 
 // Utility for critical log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -279,5 +277,4 @@ func (wrapper logWrapper) Critical(arg0 interface{}, args ...interface{}) error 
         wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
         return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
     }
-    return nil
 }

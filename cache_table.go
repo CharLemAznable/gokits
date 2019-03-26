@@ -129,7 +129,7 @@ func (table *CacheTable) expirationCheck() {
         }
         if now.Sub(baseOn) >= lifeSpan {
             // Item has exceeded its lifespan.
-            table.deleteInternal(key)
+            _, _ = table.deleteInternal(key)
         } else {
             // Find the item chronologically closest to its end-of-lifespan.
             if smallestDuration == 0 || lifeSpan-now.Sub(baseOn) < smallestDuration {

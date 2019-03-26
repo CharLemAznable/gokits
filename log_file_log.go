@@ -68,15 +68,15 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 
     // open the file for the first time
     if err := w.intRotate(); err != nil {
-        fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
         return nil
     }
 
     go func() {
         defer func() {
             if w.file != nil {
-                fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
-                w.file.Close()
+                _, _ = fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
+                _ = w.file.Close()
             }
         }()
 
@@ -84,13 +84,13 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
             select {
             case <-w.rot:
                 if err := w.intRotate(); err != nil {
-                    fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+                    _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
                     return
                 }
             case rec, ok := <-w.rec:
                 if !ok {
                     // Flush
-                    w.file.Sync()
+                    _ = w.file.Sync()
                     return
                 }
                 now := time.Now()
@@ -98,7 +98,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
                     (w.maxsize > 0 && w.maxsize_cursize >= w.maxsize) ||
                     (w.daily && now.Day() != w.daily_opendate) {
                     if err := w.intRotate(); err != nil {
-                        fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+                        _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
                         return
                     }
                 }
@@ -106,12 +106,12 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
                 // Perform the write
                 n, err := fmt.Fprint(w.file, FormatLogRecord(w.format, rec))
                 if err != nil {
-                    fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+                    _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
                     return
                 }
 
                 // Flush
-                w.file.Sync()
+                _ = w.file.Sync()
                 // Update the counts
                 w.maxlines_curlines++
                 w.maxsize_cursize += n
@@ -131,8 +131,8 @@ func (w *FileLogWriter) Rotate() {
 func (w *FileLogWriter) intRotate() error {
     // Close any log file that may be open
     if w.file != nil {
-        fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
-        w.file.Close()
+        _, _ = fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
+        _ = w.file.Close()
     }
 
     // If we are keeping log files, move it to the next available number
@@ -167,7 +167,7 @@ func (w *FileLogWriter) intRotate() error {
     w.file = fd
 
     now := time.Now()
-    fmt.Fprint(w.file, FormatLogRecord(w.header, &LogRecord{Created: now}))
+    _, _ = fmt.Fprint(w.file, FormatLogRecord(w.header, &LogRecord{Created: now}))
 
     // Set the daily open date to the current date
     w.daily_opendate = now.Day()
@@ -192,7 +192,7 @@ func (w *FileLogWriter) SetFormat(format string) *FileLogWriter {
 func (w *FileLogWriter) SetHeadFoot(head, foot string) *FileLogWriter {
     w.header, w.trailer = head, foot
     if w.maxlines_curlines == 0 {
-        fmt.Fprint(w.file, FormatLogRecord(w.header, &LogRecord{Created: time.Now()}))
+        _, _ = fmt.Fprint(w.file, FormatLogRecord(w.header, &LogRecord{Created: time.Now()}))
     }
     return w
 }

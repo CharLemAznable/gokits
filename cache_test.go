@@ -178,7 +178,7 @@ func TestCacheDelete(t *testing.T) {
         t.Error("Error retrieving data from cache", err)
     }
     // try to delete it
-    table.Delete(k)
+    _, _ = table.Delete(k)
     // verify it has been deleted
     p, err = table.Value(k)
     if err == nil || p != nil {
@@ -274,7 +274,7 @@ func TestCacheAccessCount(t *testing.T) {
     // twice and so on...
     for i := 0; i < count; i++ {
         for j := 0; j < i; j++ {
-            table.Value(i)
+            _, _ = table.Value(i)
         }
     }
 

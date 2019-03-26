@@ -24,7 +24,7 @@ func (w SocketLogWriter) Close() {
 func NewSocketLogWriter(proto, hostport string) SocketLogWriter {
     sock, err := net.Dial(proto, hostport)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "NewSocketLogWriter(%q): %s\n", hostport, err)
+        _, _ = fmt.Fprintf(os.Stderr, "NewSocketLogWriter(%q): %s\n", hostport, err)
         return nil
     }
 
@@ -33,7 +33,7 @@ func NewSocketLogWriter(proto, hostport string) SocketLogWriter {
     go func() {
         defer func() {
             if sock != nil && proto == "tcp" {
-                sock.Close()
+                _ = sock.Close()
             }
         }()
 
@@ -41,13 +41,13 @@ func NewSocketLogWriter(proto, hostport string) SocketLogWriter {
             // Marshall into JSON
             js, err := json.Marshal(rec)
             if err != nil {
-                fmt.Fprintf(os.Stderr, "SocketLogWriter(%q): %s", hostport, err)
+                _, _ = fmt.Fprintf(os.Stderr, "SocketLogWriter(%q): %s", hostport, err)
                 return
             }
 
             _, err = sock.Write(js)
             if err != nil {
-                fmt.Fprintf(os.Stderr, "SocketLogWriter(%q): %s", hostport, err)
+                _, _ = fmt.Fprintf(os.Stderr, "SocketLogWriter(%q): %s", hostport, err)
                 return
             }
         }

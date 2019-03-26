@@ -49,7 +49,7 @@ func (httpReq *HttpReq) Cookie(value string) *HttpReq {
     return httpReq.Prop("Cookie", value)
 }
 
-func (httpReq *HttpReq) Params(name string, value string, more ... string) *HttpReq {
+func (httpReq *HttpReq) Params(name string, value string, more ...string) *HttpReq {
     if 0 != len(name) || 0 != len(value) {
         httpReq.params[name] = value
     }
@@ -102,7 +102,7 @@ func (httpReq *HttpReq) Get() (string, error) {
         return "", err
     }
 
-    defer response.Body.Close()
+    defer func() { _ = response.Body.Close() }()
     body, err := ioutil.ReadAll(response.Body)
     if nil != err {
         return "", err

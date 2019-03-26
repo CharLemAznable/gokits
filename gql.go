@@ -40,7 +40,7 @@ func (instance *gqlInst) Sql(sql string) *gqlInst {
     return instance
 }
 
-func (instance *gqlInst) Params(params ... interface{}) *gqlInst {
+func (instance *gqlInst) Params(params ...interface{}) *gqlInst {
     instance.params = params
     return instance
 }
@@ -59,7 +59,7 @@ func (instance *gqlInst) Query() ([]map[string]string, error) {
     }
 
     rows, err := stmt.Query(instance.params...)
-    defer rows.Close()
+    defer func() { _ = rows.Close() }()
     if err != nil {
         log.Println(err)
         return nil, err

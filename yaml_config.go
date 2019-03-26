@@ -49,7 +49,7 @@ func ReadYamlFile(filename string) (*YamlFile, error) {
     if err != nil {
         return nil, err
     }
-    defer fin.Close()
+    defer func() { _ = fin.Close() }()
 
     f := new(YamlFile)
     f.Root, err = YamlParse(fin)

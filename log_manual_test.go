@@ -39,7 +39,7 @@ func TestFileLogWriter_Manual(t *testing.T) {
     // Log some experimental messages
     log.Finest("Everything is created now (notice that I will not be printing to the file)")
     log.Info("The time is now: %s", time.Now().Format("15:04:05 MST 2006/01/02"))
-    log.Critical("Time to close out!")
+    _ = log.Critical("Time to close out!")
 
     // Close the log
     log.Close()
@@ -57,10 +57,10 @@ func TestFileLogWriter_Manual(t *testing.T) {
         }
         fmt.Printf("%3d:\t%s", lineno, line)
     }
-    fd.Close()
+    _ = fd.Close()
 
     // Remove the file so it's not lying around
-    os.Remove(filename)
+    _ = os.Remove(filename)
 }
 
 func TestXMLConfigurationExample(t *testing.T) {
@@ -74,6 +74,6 @@ func TestXMLConfigurationExample(t *testing.T) {
     LOG.Close()
 
     time.Sleep(time.Second * 3)
-    os.Remove("test.log")
-    os.Remove("trace.xml")
+    _ = os.Remove("test.log")
+    _ = os.Remove("trace.xml")
 }

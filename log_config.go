@@ -35,19 +35,19 @@ func (log Logger) LoadConfiguration(filename string) {
     // Open the configuration file
     fd, err := os.Open(filename)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not open %q for reading: %s\n", filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not open %q for reading: %s\n", filename, err)
         return
     }
 
     contents, err := ioutil.ReadAll(fd)
     if err != nil {
-        fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not read %q: %s\n", filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not read %q: %s\n", filename, err)
         return
     }
 
     xc := new(xmlLoggerConfig)
     if err := xml.Unmarshal(contents, xc); err != nil {
-        fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not parse XML configuration in %q: %s\n", filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not parse XML configuration in %q: %s\n", filename, err)
         return
     }
 
@@ -58,21 +58,21 @@ func (log Logger) LoadConfiguration(filename string) {
 
         // Check required children
         if len(xmlfilt.Enabled) == 0 {
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required attribute %s for filter missing in %s\n", "enabled", filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required attribute %s for filter missing in %s\n", "enabled", filename)
             bad = true
         } else {
             enabled = xmlfilt.Enabled != "false"
         }
         if len(xmlfilt.Tag) == 0 {
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "tag", filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "tag", filename)
             bad = true
         }
         if len(xmlfilt.Type) == 0 {
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "type", filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "type", filename)
             bad = true
         }
         if len(xmlfilt.Level) == 0 {
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "level", filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "level", filename)
             bad = true
         }
 
@@ -94,7 +94,7 @@ func (log Logger) LoadConfiguration(filename string) {
         case "CRITICAL":
             lvl = CRITICAL
         default:
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter has unknown value in %s: %s\n", "level", filename, xmlfilt.Level)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter has unknown value in %s: %s\n", "level", filename, xmlfilt.Level)
             bad = true
         }
 
@@ -113,7 +113,7 @@ func (log Logger) LoadConfiguration(filename string) {
         case "socket":
             filt, good = xmlToSocketLogWriter(filename, xmlfilt.Property, enabled)
         default:
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not load XML configuration in %s: unknown filter type \"%s\"\n", filename, xmlfilt.Type)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not load XML configuration in %s: unknown filter type \"%s\"\n", filename, xmlfilt.Type)
             continue
         }
 
@@ -136,7 +136,7 @@ func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (
     for _, prop := range props {
         switch prop.Name {
         default:
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for console filter in %s\n", prop.Name, filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for console filter in %s\n", prop.Name, filename)
         }
     }
 
@@ -191,13 +191,13 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
         case "rotate":
             rotate = strings.Trim(prop.Value, " \r\n") != "false"
         default:
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
         }
     }
 
     // Check properties
     if len(file) == 0 {
-        fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "filename", filename)
+        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "filename", filename)
         return nil, false
     }
 
@@ -235,13 +235,13 @@ func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*Fil
         case "rotate":
             rotate = strings.Trim(prop.Value, " \r\n") != "false"
         default:
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for xml filter in %s\n", prop.Name, filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for xml filter in %s\n", prop.Name, filename)
         }
     }
 
     // Check properties
     if len(file) == 0 {
-        fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for xml filter missing in %s\n", "filename", filename)
+        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for xml filter missing in %s\n", "filename", filename)
         return nil, false
     }
 
@@ -269,13 +269,13 @@ func xmlToSocketLogWriter(filename string, props []xmlProperty, enabled bool) (S
         case "protocol":
             protocol = strings.Trim(prop.Value, " \r\n")
         default:
-            fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
+            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
         }
     }
 
     // Check properties
     if len(endpoint) == 0 {
-        fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "endpoint", filename)
+        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "endpoint", filename)
         return nil, false
     }
 
