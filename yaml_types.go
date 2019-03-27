@@ -41,8 +41,8 @@ func (node YamlMap) write(out io.Writer, firstind, nextind int) {
     ind := firstind
 
     width := 0
-    scalarkeys := []string{}
-    objectkeys := []string{}
+    var scalarkeys []string
+    var objectkeys []string
     for key, value := range node {
         if _, ok := value.(YamlScalar); ok {
             if swid := len(key); swid > width {

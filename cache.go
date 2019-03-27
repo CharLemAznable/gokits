@@ -23,6 +23,7 @@ var (
 // CacheXXX returns the existing cache table with given name/strategy or creates a new one
 // if the table does not exist yet.
 
+//noinspection GoUnusedExportedFunction
 func CacheExpireAfterWrite(table string) *CacheTable {
     mutexExpireAfterWrite.RLock()
     t, ok := cacheExpireAfterWrite[table]
@@ -46,6 +47,7 @@ func CacheExpireAfterWrite(table string) *CacheTable {
     return t
 }
 
+//noinspection GoUnusedExportedFunction
 func CacheExpireAfterAccess(table string) *CacheTable {
     mutexExpireAfterAccess.RLock()
     t, ok := cacheExpireAfterAccess[table]

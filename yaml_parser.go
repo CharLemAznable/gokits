@@ -49,6 +49,7 @@ func YamlParse(r io.Reader) (node YamlNode, err error) {
 
 // Supporting types and constants
 
+//noinspection GoUnusedConst
 const (
     typUnknown = iota
     typSequence
@@ -95,8 +96,8 @@ func parseNode(r lineReader, ind int, initial YamlNode) (node YamlNode) {
             first = false
         }
 
-        types := []int{}
-        pieces := []string{}
+        var types []int
+        var pieces []string
 
         var inlineValue func([]byte)
         inlineValue = func(partial []byte) {
@@ -355,6 +356,7 @@ func (lb *lineBuffer) Next(min int) (next *indentedLine) {
     return
 }
 
+//noinspection GoUnusedType
 type lineSlice []*indentedLine
 
 func (ls *lineSlice) Next(min int) (next *indentedLine) {

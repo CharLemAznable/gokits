@@ -127,7 +127,7 @@ func (httpReq *HttpReq) Post() (string, error) {
         return "", err
     }
 
-    defer response.Body.Close()
+    defer func() { _ = response.Body.Close() }()
     body, err := ioutil.ReadAll(response.Body)
     if nil != err {
         return "", err

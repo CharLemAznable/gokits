@@ -20,6 +20,7 @@ func GqlConnection(name string) *sql.DB {
     return connMap[name]
 }
 
+//noinspection GoUnusedExportedFunction
 func LoadGqlConfigFile(filename string) {
     configFile, err := ReadYamlFile(filename)
     if nil != err {
@@ -30,6 +31,7 @@ func LoadGqlConfigFile(filename string) {
     loadConfigYAML(configFile)
 }
 
+//noinspection GoUnusedExportedFunction
 func LoadGqlConfigString(yamlconf string) {
     configFile, err := ReadYamlString(yamlconf)
     if nil != err {
@@ -41,25 +43,19 @@ func LoadGqlConfigString(yamlconf string) {
 }
 
 func loadConfigYAML(file *YamlFile) {
-    configMap, err := MapOfYaml(file.Root, "root")
+    configMap, err := file.RootMap()
     if nil != err {
         log.Println(err)
         return
     }
 
-    for name, node := range configMap {
-        configItemMap, err := MapOfYaml(node, name)
+    for name := range configMap {
+        driverName, err := file.GetString(name+".DriverName")
         if nil != err {
             log.Println(err)
             continue
         }
-
-        driverName, err := StringOfYaml(configItemMap["DriverName"], name+".DriverName")
-        if nil != err {
-            log.Println(err)
-            continue
-        }
-        dataSourceName, err := StringOfYaml(configItemMap["DataSourceName"], name+".DataSourceName")
+        dataSourceName, err := file.GetString(name+".DataSourceName")
         if nil != err {
             log.Println(err)
             continue
@@ -71,15 +67,15 @@ func loadConfigYAML(file *YamlFile) {
             continue
         }
 
-        maxOpenConns, err := IntOfYaml(configItemMap["MaxOpenConns"], name+".MaxOpenConns")
+        maxOpenConns, err := file.GetInt(name+".MaxOpenConns")
         if nil == err {
             db.SetMaxOpenConns(int(maxOpenConns))
         }
-        maxIdleConns, err := IntOfYaml(configItemMap["MaxIdleConns"], name+".MaxIdleConns")
+        maxIdleConns, err := file.GetInt(name+".MaxIdleConns")
         if nil == err {
             db.SetMaxIdleConns(int(maxIdleConns))
         }
-        connMaxLifetime, err := IntOfYaml(configItemMap["ConnMaxLifetime"], name+".ConnMaxLifetime")
+        connMaxLifetime, err := file.GetInt(name+".ConnMaxLifetime")
         if nil == err {
             db.SetConnMaxLifetime(time.Second * time.Duration(connMaxLifetime))
         }

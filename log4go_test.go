@@ -16,7 +16,7 @@ import (
 
 const testLogFile = "_logtest.log"
 
-var now time.Time = time.Unix(0, 1234567890123456789).In(time.UTC)
+var now = time.Unix(0, 1234567890123456789).In(time.UTC)
 
 func newLogRecord(lvl level, src string, msg string) *LogRecord {
     return &LogRecord{

@@ -8,6 +8,7 @@ import (
     "io"
 )
 
+//noinspection GoSnakeCaseUsage
 const (
     FORMAT_DEFAULT = "[%D %T] [%L] (%S) %M"
     FORMAT_SHORT   = "[%t %d] [%L] %M"
@@ -97,6 +98,7 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 type FormatLogWriter chan *LogRecord
 
 // This creates a new FormatLogWriter
+//noinspection GoUnusedExportedFunction
 func NewFormatLogWriter(out io.Writer, format string) FormatLogWriter {
     records := make(FormatLogWriter, LogBufferLength)
     go records.run(out, format)

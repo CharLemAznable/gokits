@@ -63,6 +63,7 @@ func ReadYamlFile(filename string) (*YamlFile, error) {
 // ConfigYamlString reads a YAML configuration from a static string.  If an error is
 // found, it will panic.  This is a utility function and is intended for use in
 // initializers.
+//noinspection GoUnusedExportedFunction
 func ConfigYamlString(yamlconf string) *YamlFile {
     f, err := ReadYamlString(yamlconf)
     if err != nil {
@@ -75,6 +76,7 @@ func ConfigYamlString(yamlconf string) *YamlFile {
 // ConfigYamlFile reads a YAML configuration file from the given filename and
 // panics if an error is found.  This is a utility function and is intended for
 // use in initializers.
+//noinspection GoUnusedExportedFunction
 func ConfigYamlFile(filename string) *YamlFile {
     f, err := ReadYamlFile(filename)
     if err != nil {
@@ -83,23 +85,152 @@ func ConfigYamlFile(filename string) *YamlFile {
     return f
 }
 
-func (f *YamlFile) Get(spec string) (YamlNode, error) {
-    node, err := YamlChild(f.Root, spec)
+func (f *YamlFile) GetNode(spec string) (YamlNode, error) {
+    return YamlChild(f.Root, spec)
+}
+
+func (f *YamlFile) GetScalar(spec string) (YamlScalar, error) {
+    return ScalarChild(f.Root, spec)
+}
+
+func (f *YamlFile) GetString(spec string) (string, error) {
+    return StringChild(f.Root, spec)
+}
+
+func (f *YamlFile) GetInt(spec string) (int64, error) {
+    return IntChild(f.Root, spec)
+}
+
+func (f *YamlFile) GetBool(spec string) (bool, error) {
+    return BoolChild(f.Root, spec)
+}
+
+func (f *YamlFile) GetList(spec string) (YamlList, error) {
+    return ListChild(f.Root, spec)
+}
+
+func (f *YamlFile) GetListCount(spec string) (int, error) {
+    return ListChildCount(f.Root, spec)
+}
+
+func (f *YamlFile) GetMap(spec string) (YamlMap, error) {
+    return MapChild(f.Root, spec)
+}
+
+const rootSpec = "root"
+
+func (f *YamlFile) RootScalar() (YamlScalar, error) {
+    return Scalar(f.Root, rootSpec)
+}
+
+func (f *YamlFile) RootString() (string, error) {
+    sc, err := Scalar(f.Root, rootSpec)
+    if err != nil {
+        return "", err
+    }
+
+    return sc.String()
+}
+
+func (f *YamlFile) RootInt() (int64, error) {
+    sc, err := Scalar(f.Root, rootSpec)
+    if err != nil {
+        return 0, err
+    }
+
+    return sc.Int()
+}
+
+func (f *YamlFile) RootBool() (bool, error) {
+    sc, err := Scalar(f.Root, rootSpec)
+    if err != nil {
+        return false, err
+    }
+
+    return sc.Bool()
+}
+
+func (f *YamlFile) RootList() (YamlList, error) {
+    return List(f.Root, rootSpec)
+}
+
+func (f *YamlFile) RooListCount() (int, error) {
+    lst, err := List(f.Root, rootSpec)
+    if err != nil {
+        return -1, err
+    }
+
+    return lst.Len(), nil
+}
+
+func (f *YamlFile) RootMap() (YamlMap, error) {
+    return Map(f.Root, rootSpec)
+}
+
+func ScalarChild(root YamlNode, spec string) (YamlScalar, error) {
+    node, err := YamlChild(root, spec)
+    if err != nil {
+        return "", err
+    }
+
+    return Scalar(node, spec)
+}
+
+func StringChild(root YamlNode, spec string) (string, error) {
+    sc, err := ScalarChild(root, spec)
+    if err != nil {
+        return "", err
+    }
+
+    return sc.String()
+}
+
+func IntChild(root YamlNode, spec string) (int64, error) {
+    sc, err := ScalarChild(root, spec)
+    if err != nil {
+        return 0, err
+    }
+
+    return sc.Int()
+}
+
+func BoolChild(root YamlNode, spec string) (bool, error) {
+    sc, err := ScalarChild(root, spec)
+    if err != nil {
+        return false, err
+    }
+
+    return sc.Bool()
+}
+
+func ListChild(root YamlNode, spec string) (YamlList, error) {
+    node, err := YamlChild(root, spec)
     if err != nil {
         return nil, err
     }
 
-    if node == nil {
-        return nil, &YamlNodeNotFound{
-            Full: spec,
-            Spec: spec,
-        }
-    }
-
-    return node, nil
+    return List(node, spec)
 }
 
-func ScalarOfYaml(node YamlNode, spec string) (YamlScalar, error) {
+func ListChildCount(root YamlNode, spec string) (int, error) {
+    lst, err := ListChild(root, spec)
+    if err != nil {
+        return -1, err
+    }
+
+    return lst.Len(), nil
+}
+
+func MapChild(root YamlNode, spec string) (YamlMap, error) {
+    node, err := YamlChild(root, spec)
+    if err != nil {
+        return nil, err
+    }
+
+    return Map(node, spec)
+}
+
+func Scalar(node YamlNode, spec string) (YamlScalar, error) {
     sc, ok := node.(YamlScalar)
     if !ok {
         return "", &YamlNodeTypeMismatch{
@@ -113,34 +244,7 @@ func ScalarOfYaml(node YamlNode, spec string) (YamlScalar, error) {
     return sc, nil
 }
 
-func StringOfYaml(node YamlNode, spec string) (string, error) {
-    sc, err := ScalarOfYaml(node, spec)
-    if err != nil {
-        return "", err
-    }
-
-    return sc.String()
-}
-
-func IntOfYaml(node YamlNode, spec string) (int64, error) {
-    sc, err := ScalarOfYaml(node, spec)
-    if err != nil {
-        return 0, err
-    }
-
-    return sc.Int()
-}
-
-func BoolOfYaml(node YamlNode, spec string) (bool, error) {
-    sc, err := ScalarOfYaml(node, spec)
-    if err != nil {
-        return false, err
-    }
-
-    return sc.Bool()
-}
-
-func ListOfYaml(node YamlNode, spec string) (YamlList, error) {
+func List(node YamlNode, spec string) (YamlList, error) {
     ls, ok := node.(YamlList)
     if !ok {
         return nil, &YamlNodeTypeMismatch{
@@ -154,7 +258,7 @@ func ListOfYaml(node YamlNode, spec string) (YamlList, error) {
     return ls, nil
 }
 
-func MapOfYaml(node YamlNode, spec string) (YamlMap, error) {
+func Map(node YamlNode, spec string) (YamlMap, error) {
     mp, ok := node.(YamlMap)
     if !ok {
         return nil, &YamlNodeTypeMismatch{
@@ -166,103 +270,6 @@ func MapOfYaml(node YamlNode, spec string) (YamlMap, error) {
         }
     }
     return mp, nil
-}
-
-// GetString retrieves a scalar from the file specified by a string of the same
-// format as that expected by YamlChild.  If the final node is not a YamlScalar, GetString
-// will return an error.
-func (f *YamlFile) GetScalar(spec string) (YamlScalar, error) {
-    node, err := f.Get(spec)
-    if err != nil {
-        return "", err
-    }
-
-    return ScalarOfYaml(node, spec)
-}
-
-func (f *YamlFile) GetString(spec string) (string, error) {
-    scalar, err := f.GetScalar(spec)
-    if err != nil {
-        return "", err
-    }
-
-    return scalar.String()
-}
-
-func (f *YamlFile) GetInt(spec string) (int64, error) {
-    scalar, err := f.GetScalar(spec)
-    if err != nil {
-        return 0, err
-    }
-
-    return scalar.Int()
-}
-
-func (f *YamlFile) GetBool(spec string) (bool, error) {
-    scalar, err := f.GetScalar(spec)
-    if err != nil {
-        return false, err
-    }
-
-    return scalar.Bool()
-}
-
-func (f *YamlFile) GetList(spec string) (YamlList, error) {
-    node, err := f.Get(spec)
-    if err != nil {
-        return nil, err
-    }
-
-    return ListOfYaml(node, spec)
-}
-
-func (f *YamlFile) GetMap(spec string) (YamlMap, error) {
-    node, err := f.Get(spec)
-    if err != nil {
-        return nil, err
-    }
-
-    return MapOfYaml(node, spec)
-}
-
-// Count retrieves a the number of elements in the specified list from the file
-// using the same format as that expected by YamlChild.  If the final node is not a
-// YamlList, Count will return an error.
-func (f *YamlFile) Count(spec string) (int, error) {
-    node, err := YamlChild(f.Root, spec)
-    if err != nil {
-        return -1, err
-    }
-
-    if node == nil {
-        return -1, &YamlNodeNotFound{
-            Full: spec,
-            Spec: spec,
-        }
-    }
-
-    lst, ok := node.(YamlList)
-    if !ok {
-        return -1, &YamlNodeTypeMismatch{
-            Full:     spec,
-            Spec:     spec,
-            Token:    "$",
-            Expected: "gokits.YamlList",
-            Node:     node,
-        }
-    }
-    return lst.Len(), nil
-}
-
-// Require retrieves a scalar from the file specified by a string of the same
-// format as that expected by YamlChild.  If the final node is not a YamlScalar, String
-// will panic.  This is a convenience function for use in initializers.
-func (f *YamlFile) Require(spec string) string {
-    str, err := f.GetString(spec)
-    if err != nil {
-        panic(err)
-    }
-    return str
 }
 
 // YamlChild retrieves a child node from the specified node as follows:

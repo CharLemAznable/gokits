@@ -97,76 +97,15 @@ func TestYamlGet(t *testing.T) {
     }
 }
 
-var configGetOfTests = []struct {
-    Spec string
-    Want string
-    Err  string
-}{
-    {"mapping.key1", "value1", ""},
-    {"mapping.key2", "value2", ""},
-    {"list[0]", "item1", ""},
-    {"list[1]", "item2", ""},
-    {"list", "", `yaml: list: type mismatch: "list" is gokits.YamlList, want gokits.YamlScalar (at "$")`},
-    {"list.0", "", `yaml: list.0: type mismatch: "list.0" is <nil>, want gokits.YamlScalar (at "$")`},
-    {"config.server[0]", "www.google.com", ""},
-    {"config.server[1]", "www.cnn.com", ""},
-    {"config.server[2]", "www.example.com", ""},
-    {"config.server[3]", "", `yaml: config.server[3]: type mismatch: "config.server[3]" is <nil>, want gokits.YamlScalar (at "$")`},
-    {"config.listen[0]", "", `yaml: config.listen[0]: type mismatch: "config.listen[0]" is <nil>, want gokits.YamlScalar (at "$")`},
-    {"config.admin[0].username", "god", ""},
-    {"config.admin[1].username", "lowly", ""},
-    {"config.admin[2].username", "", `yaml: config.admin[2].username: type mismatch: "config.admin[2].username" is <nil>, want gokits.YamlScalar (at "$")`},
-}
-
-func TestYamlGetOf(t *testing.T) {
-    config := ConfigYamlString(dummyConfigFile)
-
-    for _, test := range configGetOfTests {
-        node, _ := config.Get(test.Spec)
-        got, err := StringOfYaml(node, test.Spec)
-        if want := test.Want; got != want {
-            t.Errorf("GetString(%q) = %q, want %q", test.Spec, got, want)
-        }
-
-        switch err {
-        case nil:
-            got = ""
-        default:
-            got = err.Error()
-        }
-        if want := test.Err; got != want {
-            t.Errorf("GetString(%q) error %#q, want %#q", test.Spec, got, want)
-        }
-    }
-
-    node3, _ := config.Get("mapping.key3")
-    i, err := IntOfYaml(node3, "mapping.key3")
-    if err != nil || i != 5 {
-        t.Errorf("GetInt mapping.key3 wrong")
-    }
-
-    node4, _ := config.Get("mapping.key4")
-    b, err := BoolOfYaml(node4, "mapping.key4")
-    if err != nil || b != true {
-        t.Errorf("GetBool mapping.key4 wrong")
-    }
-
-    node5, _ := config.Get("mapping.key5")
-    b, err = BoolOfYaml(node5, "mapping.key5")
-    if err != nil || b != false {
-        t.Errorf("GetBool mapping.key5 wrong")
-    }
-}
-
 func TestYamlCountAndRequire(t *testing.T) {
     config := ConfigYamlString(dummyConfigFile)
 
-    count, err := config.Count("list")
+    count, err := config.GetListCount("list")
     if nil != err && count != 2 {
         t.Errorf("Count list wrong")
     }
 
-    countErr, err := config.Count("config")
+    countErr, err := config.GetListCount("config")
     if nil == err || countErr != -1 {
         t.Errorf("Count config wrong")
     }
@@ -175,8 +114,8 @@ func TestYamlCountAndRequire(t *testing.T) {
 func TestYamlTypes(t *testing.T) {
     config := ConfigYamlString(dummyConfigFile)
 
-    mapping, _ := config.GetMap("mapping")
-    value1, _ := StringOfYaml(mapping.Key("key1"), "mapping.key1")
+    mp, _ := config.GetMap("mapping")
+    value1, _ := StringChild(mp, "key1")
     if "value1" != value1 {
         t.Errorf("YamlMap.Key() wrong")
     }
@@ -185,7 +124,7 @@ func TestYamlTypes(t *testing.T) {
     if 2 != list.Len() {
         t.Errorf("YamlList.Len() wrong")
     }
-    item1, _ := StringOfYaml(list.Item(0), "list[0]")
+    item1, _ := StringChild(list, "[0]")
     if "item1" != item1 {
         t.Errorf("YamlList.Item() wrong")
     }

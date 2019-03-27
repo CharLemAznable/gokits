@@ -9,6 +9,7 @@ import (
 )
 
 // This log writer sends output to a file
+//noinspection GoSnakeCaseUsage
 type FileLogWriter struct {
     rec chan *LogRecord
     rot chan bool

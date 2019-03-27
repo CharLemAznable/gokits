@@ -54,6 +54,7 @@ import (
 )
 
 // Version information
+//noinspection GoSnakeCaseUsage,GoUnusedConst
 const (
     L4G_VERSION = "log4go-v4.0.1"
     L4G_MAJOR   = 4
