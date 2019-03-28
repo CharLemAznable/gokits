@@ -124,30 +124,15 @@ func (f *YamlFile) RootScalar() (YamlScalar, error) {
 }
 
 func (f *YamlFile) RootString() (string, error) {
-    sc, err := Scalar(f.Root, rootSpec)
-    if err != nil {
-        return "", err
-    }
-
-    return sc.String()
+    return String(f.Root, rootSpec)
 }
 
 func (f *YamlFile) RootInt() (int64, error) {
-    sc, err := Scalar(f.Root, rootSpec)
-    if err != nil {
-        return 0, err
-    }
-
-    return sc.Int()
+    return Int(f.Root, rootSpec)
 }
 
 func (f *YamlFile) RootBool() (bool, error) {
-    sc, err := Scalar(f.Root, rootSpec)
-    if err != nil {
-        return false, err
-    }
-
-    return sc.Bool()
+    return Bool(f.Root, rootSpec)
 }
 
 func (f *YamlFile) RootList() (YamlList, error) {
@@ -155,12 +140,7 @@ func (f *YamlFile) RootList() (YamlList, error) {
 }
 
 func (f *YamlFile) RooListCount() (int, error) {
-    lst, err := List(f.Root, rootSpec)
-    if err != nil {
-        return -1, err
-    }
-
-    return lst.Len(), nil
+    return ListCount(f.Root, rootSpec)
 }
 
 func (f *YamlFile) RootMap() (YamlMap, error) {
@@ -177,30 +157,30 @@ func ScalarChild(root YamlNode, spec string) (YamlScalar, error) {
 }
 
 func StringChild(root YamlNode, spec string) (string, error) {
-    sc, err := ScalarChild(root, spec)
+    node, err := YamlChild(root, spec)
     if err != nil {
         return "", err
     }
 
-    return sc.String()
+    return String(node, spec)
 }
 
 func IntChild(root YamlNode, spec string) (int64, error) {
-    sc, err := ScalarChild(root, spec)
+    node, err := YamlChild(root, spec)
     if err != nil {
         return 0, err
     }
 
-    return sc.Int()
+    return Int(node, spec)
 }
 
 func BoolChild(root YamlNode, spec string) (bool, error) {
-    sc, err := ScalarChild(root, spec)
+    node, err := YamlChild(root, spec)
     if err != nil {
         return false, err
     }
 
-    return sc.Bool()
+    return Bool(node, spec)
 }
 
 func ListChild(root YamlNode, spec string) (YamlList, error) {
@@ -213,12 +193,12 @@ func ListChild(root YamlNode, spec string) (YamlList, error) {
 }
 
 func ListChildCount(root YamlNode, spec string) (int, error) {
-    lst, err := ListChild(root, spec)
+    node, err := YamlChild(root, spec)
     if err != nil {
         return -1, err
     }
 
-    return lst.Len(), nil
+    return ListCount(node, spec)
 }
 
 func MapChild(root YamlNode, spec string) (YamlMap, error) {
@@ -244,6 +224,33 @@ func Scalar(node YamlNode, spec string) (YamlScalar, error) {
     return sc, nil
 }
 
+func String(node YamlNode, spec string) (string, error) {
+    sc, err := Scalar(node, spec)
+    if err != nil {
+        return "", err
+    }
+
+    return sc.String()
+}
+
+func Int(node YamlNode, spec string) (int64, error) {
+    sc, err := Scalar(node, spec)
+    if err != nil {
+        return 0, err
+    }
+
+    return sc.Int()
+}
+
+func Bool(node YamlNode, spec string) (bool, error) {
+    sc, err := Scalar(node, spec)
+    if err != nil {
+        return false, err
+    }
+
+    return sc.Bool()
+}
+
 func List(node YamlNode, spec string) (YamlList, error) {
     ls, ok := node.(YamlList)
     if !ok {
@@ -256,6 +263,15 @@ func List(node YamlNode, spec string) (YamlList, error) {
         }
     }
     return ls, nil
+}
+
+func ListCount(node YamlNode, spec string) (int, error) {
+    lst, err := List(node, spec)
+    if err != nil {
+        return -1, err
+    }
+
+    return lst.Len(), nil
 }
 
 func Map(node YamlNode, spec string) (YamlMap, error) {
