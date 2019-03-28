@@ -11,12 +11,12 @@ func ResponseJson(writer http.ResponseWriter, json string) {
 
 //noinspection GoUnusedExportedFunction
 func ResponseText(writer http.ResponseWriter, text string) {
-    ResponseContent(writer, text, "application/json", "UTF-8")
+    ResponseContent(writer, text, "text/plain", "UTF-8")
 }
 
 //noinspection GoUnusedExportedFunction
 func ResponseHtml(writer http.ResponseWriter, html string) {
-    ResponseContent(writer, html, "application/json", "UTF-8")
+    ResponseContent(writer, html, "text/html", "UTF-8")
 }
 
 func ResponseContent(writer http.ResponseWriter,
@@ -33,12 +33,12 @@ func ResponseErrorJson(writer http.ResponseWriter, statusCode int, json string) 
 
 //noinspection GoUnusedExportedFunction
 func ResponseErrorText(writer http.ResponseWriter, statusCode int, text string) {
-    ResponseErrorContent(writer, statusCode, text, "application/json", "UTF-8")
+    ResponseErrorContent(writer, statusCode, text, "text/plain", "UTF-8")
 }
 
 //noinspection GoUnusedExportedFunction
 func ResponseErrorHtml(writer http.ResponseWriter, statusCode int, html string) {
-    ResponseErrorContent(writer, statusCode, html, "application/json", "UTF-8")
+    ResponseErrorContent(writer, statusCode, html, "text/html", "UTF-8")
 }
 
 func ResponseErrorContent(writer http.ResponseWriter, statusCode int,
