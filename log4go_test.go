@@ -115,6 +115,7 @@ func TestConsoleLogWriter(t *testing.T) {
     }
 }
 
+//noinspection GoUnhandledErrorResult
 func TestFileLogWriter(t *testing.T) {
     defer func(buflen int) {
         LogBufferLength = buflen
@@ -125,7 +126,7 @@ func TestFileLogWriter(t *testing.T) {
     if w == nil {
         t.Fatalf("Invalid return: w should not be nil")
     }
-    defer func() { _ = os.Remove(testLogFile) }()
+    defer os.Remove(testLogFile)
 
     w.LogWrite(newLogRecord(CRITICAL, "source", "message"))
     w.Close()
@@ -138,6 +139,7 @@ func TestFileLogWriter(t *testing.T) {
     }
 }
 
+//noinspection GoUnhandledErrorResult
 func TestXMLLogWriter(t *testing.T) {
     defer func(buflen int) {
         LogBufferLength = buflen
@@ -148,7 +150,7 @@ func TestXMLLogWriter(t *testing.T) {
     if w == nil {
         t.Fatalf("Invalid return: w should not be nil")
     }
-    defer func() { _ = os.Remove(testLogFile) }()
+    defer os.Remove(testLogFile)
 
     w.LogWrite(newLogRecord(CRITICAL, "source", "message"))
     w.Close()
@@ -217,6 +219,7 @@ func TestLogger(t *testing.T) {
     // func (l *Logger) Info(format string, args ...interface{}) {}
 }
 
+//noinspection GoUnhandledErrorResult
 func TestLogOutput(t *testing.T) {
     const (
         expected = "fdf3e51e444da56b4cb400f30bc47424"
@@ -232,7 +235,7 @@ func TestLogOutput(t *testing.T) {
 
     // Delete and open the output log without a timestamp (for a constant md5sum)
     l.AddFilter("file", FINEST, NewFileLogWriter(testLogFile, false).SetFormat("[%L] %M"))
-    defer func() { _ = os.Remove(testLogFile) }()
+    defer os.Remove(testLogFile)
 
     // Send some log messages
     l.Log(CRITICAL, "testsrc1", fmt.Sprintf("This message is level %d", int(CRITICAL)))
