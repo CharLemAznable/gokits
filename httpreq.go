@@ -14,6 +14,7 @@ type HttpReq struct {
     params  map[string]string
     body    string
     props   []prop
+    cookies []*http.Cookie
 }
 
 type prop struct {
@@ -26,27 +27,13 @@ func NewHttpReq(baseUrl string) *HttpReq {
     httpReq.baseUrl = baseUrl
     httpReq.params = make(map[string]string)
     httpReq.props = make([]prop, 0)
+    httpReq.cookies = make([]*http.Cookie, 0)
     return httpReq
 }
 
 func (httpReq *HttpReq) Req(req string) *HttpReq {
     httpReq.req = req
     return httpReq
-}
-
-func (httpReq *HttpReq) Prop(name string, value string) *HttpReq {
-    if 0 == len(name) || 0 == len(value) {
-        return httpReq
-    }
-    httpReq.props = append(httpReq.props, prop{name: name, value: value})
-    return httpReq
-}
-
-func (httpReq *HttpReq) Cookie(value string) *HttpReq {
-    if 0 == len(value) {
-        return httpReq
-    }
-    return httpReq.Prop("Cookie", value)
 }
 
 func (httpReq *HttpReq) Params(name string, value string, more ...string) *HttpReq {
@@ -86,6 +73,22 @@ func (httpReq *HttpReq) RequestBody(requestBody string) *HttpReq {
     return httpReq
 }
 
+func (httpReq *HttpReq) Prop(name string, value string) *HttpReq {
+    if 0 == len(name) || 0 == len(value) {
+        return httpReq
+    }
+    httpReq.props = append(httpReq.props, prop{name: name, value: value})
+    return httpReq
+}
+
+func (httpReq *HttpReq) Cookie(cookie *http.Cookie) *HttpReq {
+    if 0 == len(cookie.Name) || 0 == len(cookie.Value) {
+        return httpReq
+    }
+    httpReq.cookies = append(httpReq.cookies, cookie)
+    return httpReq
+}
+
 func (httpReq *HttpReq) Get() (string, error) {
     request, err := httpReq.createGetRequest()
     if nil != err {
@@ -93,6 +96,7 @@ func (httpReq *HttpReq) Get() (string, error) {
     }
     httpReq.commonSettings(request)
     httpReq.setHeaders(request)
+    httpReq.addCookies(request)
 
     response, err := http.DefaultClient.Do(request)
     if nil != err {
@@ -118,6 +122,7 @@ func (httpReq *HttpReq) Post() (string, error) {
     httpReq.commonSettings(request)
     httpReq.postSettings(request)
     httpReq.setHeaders(request)
+    httpReq.addCookies(request)
 
     response, err := http.DefaultClient.Do(request)
     if nil != err {
@@ -175,6 +180,12 @@ func (httpReq *HttpReq) commonSettings(request *http.Request) {
 func (httpReq *HttpReq) setHeaders(request *http.Request) {
     for _, prop := range httpReq.props {
         request.Header.Set(prop.name, prop.value)
+    }
+}
+
+func (httpReq *HttpReq) addCookies(request *http.Request)  {
+    for _, cookie := range httpReq.cookies {
+        request.AddCookie(cookie)
     }
 }
 
