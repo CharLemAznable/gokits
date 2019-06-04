@@ -31,3 +31,27 @@ func TestUnJson(t *testing.T) {
         t.Fail()
     }
 }
+
+func TestUnJsonArray(t *testing.T) {
+    testJsonStr := "[{\"IntValue\":12,\"StrValue\":\"34\",\"BoolValue\":true},{\"IntValue\":56,\"StrValue\":\"78\",\"BoolValue\":true}]"
+    var v = new([]testJsonType)
+    testJsonStructArray := *(UnJson(testJsonStr, v).(*[]testJsonType))
+
+    if 2 != len(testJsonStructArray) {
+        t.Fail()
+    }
+
+    struct0 := testJsonStructArray[0]
+    if 12 != struct0.IntValue ||
+        "34" != struct0.StrValue ||
+        !struct0.BoolValue {
+        t.Fail()
+    }
+
+    struct1 := testJsonStructArray[1]
+    if 56 != struct1.IntValue ||
+        "78" != struct1.StrValue ||
+        !struct1.BoolValue {
+        t.Fail()
+    }
+}
