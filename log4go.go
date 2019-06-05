@@ -1,3 +1,5 @@
+package gokits
+
 // Copyright (C) 2010, Kyle Lemons <kyle@kylelemons.net>.  All rights reserved.
 
 // Package log4go provides level-based and highly configurable logging.
@@ -43,8 +45,6 @@
 // - Have GetInfoChannel, GetDebugChannel, etc return a chan string that allows
 //   for another method of logging
 // - Add an XML filter type
-package gokits
-
 import (
     "errors"
     "fmt"

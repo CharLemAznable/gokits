@@ -10,9 +10,7 @@ type Hashtable struct {
 }
 
 func NewHashtable() *Hashtable {
-    hashtable := new(Hashtable)
-    hashtable.mapper = make(map[interface{}]interface{})
-    return hashtable
+    return &Hashtable{mapper: make(map[interface{}]interface{})}
 }
 
 func (hashtable *Hashtable) Put(key, value interface{}) interface{} {
@@ -32,11 +30,14 @@ func (hashtable *Hashtable) Get(key interface{}) interface{} {
     return hashtable.mapper[key]
 }
 
-func (hashtable *Hashtable) Remove(key interface{}) {
+func (hashtable *Hashtable) Remove(key interface{}) interface{} {
     hashtable.mutex.Lock()
     defer hashtable.mutex.Unlock()
 
+    old := hashtable.mapper[key]
     delete(hashtable.mapper, key)
+
+    return old
 }
 
 func (hashtable *Hashtable) Size() int {

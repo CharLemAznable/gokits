@@ -32,7 +32,9 @@ func TestNewHashtable(t *testing.T) {
         t.Fail()
     }
 
-    h.Remove("key1")
+    if 1000 != h.Remove("key1") {
+        t.Fail()
+    }
     if 2 != h.Size() {
         t.Fail()
     }
