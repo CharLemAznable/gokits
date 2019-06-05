@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "fmt"
     "testing"
 )
 
@@ -14,6 +15,7 @@ func TestNewHashtable(t *testing.T) {
         t.Fail()
     }
     keys := h.Keys()
+    fmt.Println(keys)
     if "key0" != keys[0] || "key1" != keys[1] || "key2" != keys[2] {
         t.Fail()
     }
@@ -32,6 +34,7 @@ func TestNewHashtable(t *testing.T) {
         t.Fail()
     }
     keys = h.Keys()
+    fmt.Println(keys)
     if "key0" != keys[0] || "key2" != keys[1] {
         t.Fail()
     }
