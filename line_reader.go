@@ -11,7 +11,6 @@ type LineReader struct {
     inLimit   int
     inOff     int
     reader    io.Reader
-    // readLine() (int, error)
 }
 
 func NewLineReader(reader io.Reader) *LineReader {
