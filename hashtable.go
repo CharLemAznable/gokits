@@ -19,7 +19,7 @@ func (hashtable *Hashtable) Put(key, value interface{}) interface{} {
     hashtable.mutex.Lock()
     defer hashtable.mutex.Unlock()
 
-    var old = hashtable.mapper[key]
+    old := hashtable.mapper[key]
     hashtable.mapper[key] = value
 
     return old
@@ -50,7 +50,7 @@ func (hashtable *Hashtable) Keys() []interface{} {
     hashtable.mutex.Lock()
     defer hashtable.mutex.Unlock()
 
-    var keys = make([]interface{}, 0, len(hashtable.mapper))
+    keys := make([]interface{}, 0, len(hashtable.mapper))
     for key := range hashtable.mapper {
         keys = append(keys, key)
     }

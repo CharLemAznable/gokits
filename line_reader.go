@@ -24,14 +24,14 @@ func NewLineReader(reader io.Reader) *LineReader {
 }
 
 func (lineReader *LineReader) ReadLine() (int, error) {
-    var length = 0
+    length := 0
     var c byte = 0
-    var skipWhiteSpace = true
-    var isCommentLine = false
-    var isNewLine = true
-    var appendedLineBegin = false
-    var precedingBackslash = false
-    var skipLF = false
+    skipWhiteSpace := true
+    isCommentLine := false
+    isNewLine := true
+    appendedLineBegin := false
+    precedingBackslash := false
+    skipLF := false
 
     for true {
         if lineReader.inOff >= lineReader.inLimit {
@@ -80,11 +80,11 @@ func (lineReader *LineReader) ReadLine() (int, error) {
             lineReader.lineBuf[length] = c
             length++
             if length == len(lineReader.lineBuf) {
-                var newLength = length * 2
+                newLength := length * 2
                 if newLength < 0 {
                     newLength = int(^uint(0) >> 1)
                 }
-                var buf = make([]byte, newLength)
+                buf := make([]byte, newLength)
                 copy(buf, lineReader.lineBuf)
                 lineReader.lineBuf = buf
             }
