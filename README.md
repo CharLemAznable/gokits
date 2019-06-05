@@ -28,6 +28,10 @@ Go常用工具包.
 
   数据库访问工具
 
+##### hashset
+
+  实现Java HashSet
+
 ##### hashtable
 
   实现Java HashTable
