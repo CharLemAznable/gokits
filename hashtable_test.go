@@ -1,7 +1,8 @@
 package gokits
 
 import (
-    "fmt"
+    "sort"
+    "strings"
     "testing"
 )
 
@@ -15,7 +16,9 @@ func TestNewHashtable(t *testing.T) {
         t.Fail()
     }
     keys := h.Keys()
-    fmt.Println(keys)
+    sort.Slice(keys, func(i, j int) bool {
+        return strings.Compare(keys[i].(string), keys[j].(string)) < 0
+    })
     if "key0" != keys[0] || "key1" != keys[1] || "key2" != keys[2] {
         t.Fail()
     }
@@ -34,7 +37,9 @@ func TestNewHashtable(t *testing.T) {
         t.Fail()
     }
     keys = h.Keys()
-    fmt.Println(keys)
+    sort.Slice(keys, func(i, j int) bool {
+        return strings.Compare(keys[i].(string), keys[j].(string)) < 0
+    })
     if "key0" != keys[0] || "key2" != keys[1] {
         t.Fail()
     }
