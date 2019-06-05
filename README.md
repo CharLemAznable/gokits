@@ -73,6 +73,10 @@ Go常用工具包.
 
   路径合并工具
 
+##### properties
+
+  实现Java Properties
+
 ##### strconv
 
   字符串数字转换工具
