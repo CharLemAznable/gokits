@@ -8,7 +8,7 @@
 
 Go常用工具包.
 
-##### gcache
+##### cache
 
   重构来自[muesli/cache2go](https://github.com/muesli/cache2go/)
 
@@ -16,9 +16,21 @@ Go常用工具包.
 
   在原有缓存Loader类型上, 增加异常返回值.
 
+##### collections
+
+  字符串数组/切片工具
+
+##### cond
+
+  条件表达式工具
+
 ##### gql
 
   数据库访问工具
+
+##### hashtable
+
+  实现Java HashTable
   
 ##### http
 
@@ -28,7 +40,15 @@ Go常用工具包.
 
   网络请求工具
 
-##### log
+##### json
+
+  JSON序列化/反序列化工具
+
+##### line_reader
+
+  实现Java LineReader
+
+##### log4go
 
   本地日志
 
@@ -48,6 +68,14 @@ Go常用工具包.
   Acknowledgements:
   - pomack
     For providing awesome patches to bring log4go up to the latest Go spec
+
+##### path
+
+  路径合并工具
+
+##### strconv
+
+  字符串数字转换工具
 
 ##### yaml
 
