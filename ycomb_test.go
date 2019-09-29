@@ -5,7 +5,7 @@ import (
 )
 
 func TestYComb(test *testing.T) {
-    fac := YComb(func(recFunc RecFunc) RecFunc {
+    fac := YComb(func(recFunc func(interface{}) interface{}) func(interface{}) interface{} {
         return func(n interface{}) interface{} {
             if n.(int) <= 1 {
                 return 1
@@ -19,7 +19,7 @@ func TestYComb(test *testing.T) {
         test.Error("YComb(fac) Error: fac(10) should be 3628800 but ", resultFac)
     }
 
-    fib := YComb(func(recFunc RecFunc) RecFunc {
+    fib := YComb(func(recFunc func(interface{}) interface{}) func(interface{}) interface{} {
         return func(n interface{}) interface{} {
             if n.(int) <= 2 {
                 return 1
