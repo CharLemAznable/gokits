@@ -214,21 +214,7 @@ func (wrapper logWrapper) Warn(arg0 interface{}, args ...interface{}) error {
     const (
         lvl = WARNING
     )
-    switch first := arg0.(type) {
-    case string:
-        // Use the string as a format string
-        wrapper.logger.intLogf(lvl, first, args...)
-        return errors.New(fmt.Sprintf(first, args...))
-    case func() string:
-        // Log the closure (no other arguments used)
-        str := first()
-        wrapper.logger.intLogf(lvl, "%s", str)
-        return errors.New(str)
-    default:
-        // Build a format string so that it will be similar to Sprint
-        wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
-        return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
-    }
+    return wrapper.errorInternal(lvl, arg0, args...)
 }
 
 // Utility for error log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -238,21 +224,7 @@ func (wrapper logWrapper) Error(arg0 interface{}, args ...interface{}) error {
     const (
         lvl = ERROR
     )
-    switch first := arg0.(type) {
-    case string:
-        // Use the string as a format string
-        wrapper.logger.intLogf(lvl, first, args...)
-        return errors.New(fmt.Sprintf(first, args...))
-    case func() string:
-        // Log the closure (no other arguments used)
-        str := first()
-        wrapper.logger.intLogf(lvl, "%s", str)
-        return errors.New(str)
-    default:
-        // Build a format string so that it will be similar to Sprint
-        wrapper.logger.intLogf(lvl, fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
-        return errors.New(fmt.Sprint(first) + fmt.Sprintf(strings.Repeat(" %v", len(args)), args...))
-    }
+    return wrapper.errorInternal(lvl, arg0, args...)
 }
 
 // Utility for critical log messages (returns an error for easy function returns) (see Debug() for parameter explanation)
@@ -262,6 +234,10 @@ func (wrapper logWrapper) Critical(arg0 interface{}, args ...interface{}) error 
     const (
         lvl = CRITICAL
     )
+    return wrapper.errorInternal(lvl, arg0, args...)
+}
+
+func (wrapper logWrapper) errorInternal(lvl level, arg0 interface{}, args ...interface{}) error {
     switch first := arg0.(type) {
     case string:
         // Use the string as a format string

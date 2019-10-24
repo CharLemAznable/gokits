@@ -160,13 +160,10 @@ func strToNumSuffix(str string, mult int) int {
         switch str[len(str)-1] {
         case 'G', 'g':
             num *= mult * mult * mult
-            break
         case 'M', 'm':
             num *= mult * mult
-            break
         case 'K', 'k':
             num *= mult
-            break
         }
         str = str[0 : len(str)-1]
     }

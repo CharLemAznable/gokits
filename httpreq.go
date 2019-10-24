@@ -95,23 +95,7 @@ func (httpReq *HttpReq) Get() (string, error) {
         return "", err
     }
     httpReq.commonSettings(request)
-    httpReq.setHeaders(request)
-    httpReq.addCookies(request)
-
-    response, err := http.DefaultClient.Do(request)
-    if nil != err {
-        log.Printf("Get: %s, STATUS CODE = %d\n\n%s\n",
-            request.URL.String(), Condition(nil != response,
-                func() interface{} { return response.StatusCode }, -1), err.Error())
-        return "", err
-    }
-
-    defer func() { _ = response.Body.Close() }()
-    body, err := ioutil.ReadAll(response.Body)
-    if nil != err {
-        return "", err
-    }
-    return string(body), nil
+    return httpReq.doRequest(request)
 }
 
 func (httpReq *HttpReq) Post() (string, error) {
@@ -121,13 +105,17 @@ func (httpReq *HttpReq) Post() (string, error) {
     }
     httpReq.commonSettings(request)
     httpReq.postSettings(request)
+    return httpReq.doRequest(request)
+}
+
+func (httpReq *HttpReq) doRequest(request *http.Request) (string, error) {
     httpReq.setHeaders(request)
     httpReq.addCookies(request)
 
     response, err := http.DefaultClient.Do(request)
     if nil != err {
-        log.Printf("Post: %s, STATUS CODE = %d\n\n%s\n",
-            request.URL.String(), Condition(nil != response,
+        log.Printf("%s: %s, STATUS CODE = %d\n\n%s\n",
+            request.Method, request.URL.String(), Condition(nil != response,
                 func() interface{} { return response.StatusCode }, -1), err.Error())
         return "", err
     }
@@ -183,7 +171,7 @@ func (httpReq *HttpReq) setHeaders(request *http.Request) {
     }
 }
 
-func (httpReq *HttpReq) addCookies(request *http.Request)  {
+func (httpReq *HttpReq) addCookies(request *http.Request) {
     for _, cookie := range httpReq.cookies {
         request.AddCookie(cookie)
     }
