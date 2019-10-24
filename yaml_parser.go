@@ -71,6 +71,19 @@ type indentedLine struct {
     line   []byte
 }
 
+func (line *indentedLine) loopIndent() {
+    for _, ch := range line.line {
+        switch ch {
+        case ' ':
+            line.indent += 1
+            continue
+        default:
+        }
+        break
+    }
+    line.line = line.line[line.indent:]
+}
+
 func (line *indentedLine) String() string {
     return fmt.Sprintf("%2d: %s%s", line.indent,
         strings.Repeat(" ", 0*line.indent), string(line.line))
@@ -330,17 +343,7 @@ func (lb *lineBuffer) Next(min int) (next *indentedLine) {
         }
         lb.readLines++
 
-        for _, ch := range l.line {
-            switch ch {
-            case ' ':
-                l.indent += 1
-                continue
-            default:
-            }
-            break
-        }
-        l.line = l.line[l.indent:]
-
+        l.loopIndent()
         // Ignore blank lines and comments.
         if len(l.line) == 0 || l.line[0] == '#' {
             return lb.Next(min)

@@ -170,6 +170,10 @@ func strToNumSuffix(str string, mult int) int {
     parsed, _ := strconv.Atoi(str)
     return parsed * num
 }
+
+const UnknownPropertyForFile = "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n"
+const MissingPropertyForFile = "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n"
+
 func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
     file := ""
     format := "[%D %T] [%L] (%S) %M"
@@ -194,13 +198,13 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
         case "rotate":
             rotate = strings.Trim(prop.Value, " \r\n") != "false"
         default:
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for file filter in %s\n", prop.Name, filename)
+            _, _ = fmt.Fprintf(os.Stderr, UnknownPropertyForFile, prop.Name, filename)
         }
     }
 
     // Check properties
     if len(file) == 0 {
-        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for file filter missing in %s\n", "filename", filename)
+        _, _ = fmt.Fprintf(os.Stderr, MissingPropertyForFile, "filename", filename)
         return nil, false
     }
 
@@ -216,6 +220,9 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
     flw.SetRotateDaily(daily)
     return flw, true
 }
+
+const UnknownPropertyForXml = "LoadConfiguration: Warning: Unknown property \"%s\" for xml filter in %s\n"
+const MissingPropertyForXml = "LoadConfiguration: Error: Required property \"%s\" for xml filter missing in %s\n"
 
 func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
     file := ""
@@ -238,13 +245,13 @@ func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*Fil
         case "rotate":
             rotate = strings.Trim(prop.Value, " \r\n") != "false"
         default:
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Warning: Unknown property \"%s\" for xml filter in %s\n", prop.Name, filename)
+            _, _ = fmt.Fprintf(os.Stderr, UnknownPropertyForXml, prop.Name, filename)
         }
     }
 
     // Check properties
     if len(file) == 0 {
-        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required property \"%s\" for xml filter missing in %s\n", "filename", filename)
+        _, _ = fmt.Fprintf(os.Stderr, MissingPropertyForXml, "filename", filename)
         return nil, false
     }
 
