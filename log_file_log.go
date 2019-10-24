@@ -49,6 +49,7 @@ func (w *FileLogWriter) Close() {
     close(w.rec)
 }
 
+const FileLogWriterFormat = "FileLogWriter(%q): %s\n"
 // NewFileLogWriter creates a new LogWriter which writes to the given file and
 // has rotation enabled if rotate is true.
 //
@@ -69,7 +70,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 
     // open the file for the first time
     if err := w.intRotate(); err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
         return nil
     }
 
@@ -85,7 +86,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
             select {
             case <-w.rot:
                 if err := w.intRotate(); err != nil {
-                    _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+                    _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
                     return
                 }
             case rec, ok := <-w.rec:
@@ -99,7 +100,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
                     (w.maxsize > 0 && w.maxsize_cursize >= w.maxsize) ||
                     (w.daily && now.Day() != w.daily_opendate) {
                     if err := w.intRotate(); err != nil {
-                        _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+                        _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
                         return
                     }
                 }
@@ -107,7 +108,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
                 // Perform the write
                 n, err := fmt.Fprint(w.file, FormatLogRecord(w.format, rec))
                 if err != nil {
-                    _, _ = fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
+                    _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
                     return
                 }
 

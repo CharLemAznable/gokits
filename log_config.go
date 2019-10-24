@@ -28,6 +28,14 @@ type xmlLoggerConfig struct {
     Filter []xmlFilter `xml:"filter"`
 }
 
+const CouldNotOpen = "LoadConfiguration: Error: Could not open %q for reading: %s\n"
+const CouldNotRead = "LoadConfiguration: Error: Could not read %q: %s\n"
+const CouldNotParse = "LoadConfiguration: Error: Could not parse XML configuration in %q: %s\n"
+const MissingAttribute = "LoadConfiguration: Error: Required attribute %s for filter missing in %s\n"
+const MissingChild = "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n"
+const UnknownValue = "LoadConfiguration: Error: Required child <%s> for filter has unknown value in %s: %s\n"
+const UnknownFilter = "LoadConfiguration: Error: Could not load XML configuration in %s: unknown filter type \"%s\"\n"
+
 // Load XML configuration; see log_manual_test_example.xml for documentation
 func (log Logger) LoadConfiguration(filename string) {
     log.Close()
@@ -35,19 +43,19 @@ func (log Logger) LoadConfiguration(filename string) {
     // Open the configuration file
     fd, err := os.Open(filename)
     if err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not open %q for reading: %s\n", filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, CouldNotOpen, filename, err)
         return
     }
 
     contents, err := ioutil.ReadAll(fd)
     if err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not read %q: %s\n", filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, CouldNotRead, filename, err)
         return
     }
 
     xc := new(xmlLoggerConfig)
     if err := xml.Unmarshal(contents, xc); err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not parse XML configuration in %q: %s\n", filename, err)
+        _, _ = fmt.Fprintf(os.Stderr, CouldNotParse, filename, err)
         return
     }
 
@@ -58,21 +66,21 @@ func (log Logger) LoadConfiguration(filename string) {
 
         // Check required children
         if len(xmlfilt.Enabled) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required attribute %s for filter missing in %s\n", "enabled", filename)
+            _, _ = fmt.Fprintf(os.Stderr, MissingAttribute, "enabled", filename)
             bad = true
         } else {
             enabled = xmlfilt.Enabled != "false"
         }
         if len(xmlfilt.Tag) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "tag", filename)
+            _, _ = fmt.Fprintf(os.Stderr, MissingChild, "tag", filename)
             bad = true
         }
         if len(xmlfilt.Type) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "type", filename)
+            _, _ = fmt.Fprintf(os.Stderr, MissingChild, "type", filename)
             bad = true
         }
         if len(xmlfilt.Level) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter missing in %s\n", "level", filename)
+            _, _ = fmt.Fprintf(os.Stderr, MissingChild, "level", filename)
             bad = true
         }
 
@@ -94,7 +102,7 @@ func (log Logger) LoadConfiguration(filename string) {
         case "CRITICAL":
             lvl = CRITICAL
         default:
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Required child <%s> for filter has unknown value in %s: %s\n", "level", filename, xmlfilt.Level)
+            _, _ = fmt.Fprintf(os.Stderr, UnknownValue, "level", filename, xmlfilt.Level)
             bad = true
         }
 
@@ -113,7 +121,7 @@ func (log Logger) LoadConfiguration(filename string) {
         case "socket":
             filt, good = xmlToSocketLogWriter(filename, xmlfilt.Property, enabled)
         default:
-            _, _ = fmt.Fprintf(os.Stderr, "LoadConfiguration: Error: Could not load XML configuration in %s: unknown filter type \"%s\"\n", filename, xmlfilt.Type)
+            _, _ = fmt.Fprintf(os.Stderr, UnknownFilter, filename, xmlfilt.Type)
             continue
         }
 
@@ -151,15 +159,16 @@ func strToNumSuffix(str string, mult int) int {
     if len(str) > 1 {
         switch str[len(str)-1] {
         case 'G', 'g':
-            num *= mult
-            fallthrough
+            num *= mult * mult * mult
+            break
         case 'M', 'm':
-            num *= mult
-            fallthrough
+            num *= mult * mult
+            break
         case 'K', 'k':
             num *= mult
-            str = str[0 : len(str)-1]
+            break
         }
+        str = str[0 : len(str)-1]
     }
     parsed, _ := strconv.Atoi(str)
     return parsed * num

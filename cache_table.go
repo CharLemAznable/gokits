@@ -108,7 +108,11 @@ func (table *CacheTable) expirationCheck() {
     } else {
         table.log("Expiration check installed for table", table.name)
     }
+    table.expirationCheckInternal()
+    table.Unlock()
+}
 
+func (table *CacheTable) expirationCheckInternal() {
     // To be more accurate with timers, we would need to update 'now' on every
     // loop iteration. Not sure it's really efficient though.
     isExpireAfterAccess := ExpireAfterAccess == table.strategy
@@ -145,7 +149,6 @@ func (table *CacheTable) expirationCheck() {
             go table.expirationCheck()
         })
     }
-    table.Unlock()
 }
 
 func (table *CacheTable) addInternal(item *CacheItem) {

@@ -101,7 +101,7 @@ func parseNode(r lineReader, ind int, initial YamlNode) (node YamlNode) {
 
         var inlineValue func([]byte)
         inlineValue = func(partial []byte) {
-            // TODO(kevlar): This can be a for loop now
+            // This can be a for loop now
             vtyp, brk := getType(partial)
             begin, end := partial[:brk], partial[brk:]
 
@@ -161,7 +161,7 @@ func parseNode(r lineReader, ind int, initial YamlNode) (node YamlNode) {
             if last == 0 {
                 current = node
             }
-            // child := parseNode(r, line.indent+1, typUnknown) // TODO allow scalar only
+            // child := parseNode(r, line.indent+1, typUnknown) allow scalar only
 
             // Add to current node
             switch typ {

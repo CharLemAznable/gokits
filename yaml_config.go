@@ -27,7 +27,7 @@ import (
 type YamlFile struct {
     Root YamlNode
 
-    // TODO(kevlar): Add a cache?
+    // Add a cache?
 }
 
 func ReadYamlString(yamlconf string) (*YamlFile, error) {
