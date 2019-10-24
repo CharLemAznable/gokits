@@ -7,5 +7,6 @@ addons:
     organization: "charlemaznable"
 script:
   - go test -test.bench=.* -coverprofile=coverage.txt -covermode=atomic
+  - sonar-scanner
 after_success:
   - bash <(curl -s https://codecov.io/bash)
