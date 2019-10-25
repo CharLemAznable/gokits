@@ -54,9 +54,15 @@ func (lineReader *LineReader) ReadLine() (int, error) {
         if c != '\n' && c != '\r' {
             lineReader.readLine(&length, c, &precedingBackslash)
         } else {
-            ret, lth, err := lineReader.readEOL(&isCommentLine, &length,
-                &isNewLine, &skipWhiteSpace, &precedingBackslash,
-                &appendedLineBegin, c, &skipLF)
+            cont, lth := lineReader.readEOL(&isCommentLine,
+                &length, &isNewLine, &skipWhiteSpace)
+            length = lth
+            if cont {
+                continue
+            }
+
+            ret, lth, err := lineReader.readNext(&precedingBackslash, &length,
+                &skipWhiteSpace, &appendedLineBegin, c, &skipLF)
             if ret {
                 return lth, err
             } else {
@@ -139,17 +145,20 @@ func (lineReader *LineReader) readLine(length *int, c byte, precedingBackslash *
 }
 
 func (lineReader *LineReader) readEOL(isCommentLine *bool, length *int,
-    isNewLine *bool, skipWhiteSpace *bool, precedingBackslash *bool,
-    appendedLineBegin *bool, c byte, skipLF *bool) (bool, int, error) {
-
+    isNewLine *bool, skipWhiteSpace *bool) (bool, int) {
     // reached EOL
     if *isCommentLine || *length == 0 {
         *isCommentLine = false
         *isNewLine = true
         *skipWhiteSpace = true
         *length = 0
-        return false, *length, nil
+        return false, *length
     }
+    return true, *length
+}
+
+func (lineReader *LineReader) readNext(precedingBackslash *bool, length *int,
+    skipWhiteSpace *bool, appendedLineBegin *bool, c byte, skipLF *bool) (bool, int, error) {
     if lineReader.inOff >= lineReader.inLimit {
         n, err := lineReader.reader.Read(lineReader.inByteBuf)
         lineReader.inLimit = n
