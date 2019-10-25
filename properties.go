@@ -136,55 +136,31 @@ func (properties *Properties) Load(reader io.Reader) error {
     return properties.load0(NewLineReader(reader))
 }
 
+type load0Temp struct {
+    convtBuf                   []byte
+    limit, keyLen, valueStart  int
+    c                          byte
+    hasSep, precedingBackslash bool
+}
+
 func (properties *Properties) load0(lr *LineReader) error {
-    convtBuf := make([]byte, 1024)
-    var limit, keyLen, valueStart int
-    var c byte
-    var hasSep, precedingBackslash bool
+    temp := &load0Temp{
+        convtBuf: make([]byte, 1024),
+    }
 
-    for limit, _ = lr.ReadLine(); limit >= 0; limit, _ = lr.ReadLine() {
-        c = 0
-        keyLen = 0
-        valueStart = limit
-        hasSep = false
+    for temp.limit, _ = lr.ReadLine(); temp.limit >= 0; temp.limit, _ = lr.ReadLine() {
+        temp.c = 0
+        temp.keyLen = 0
+        temp.valueStart = temp.limit
+        temp.hasSep = false
 
-        // fmt.Println("line=<" + string(lr.(*lineReader).lineBuf[:limit]) + ">")
-        precedingBackslash = false
-        for keyLen < limit {
-            c = lr.lineBuf[keyLen]
-            // need check if escaped.
-            if (c == '=' || c == ':') && !precedingBackslash {
-                valueStart = keyLen + 1
-                hasSep = true
-                break
-            } else if (c == ' ' || c == '\t' || c == '\f') && !precedingBackslash {
-                valueStart = keyLen + 1
-                break
-            }
-            if c == '\\' {
-                precedingBackslash = !precedingBackslash
-            } else {
-                precedingBackslash = false
-            }
-            keyLen++
-        }
-        for valueStart < limit {
-            c = lr.lineBuf[valueStart]
-            if c != ' ' && c != '\t' && c != '\f' {
-                if !hasSep && (c == '=' || c == ':') {
-                    hasSep = true
-                } else {
-                    break
-                }
-            }
-            valueStart++
-        }
+        properties.load0Loop(lr, temp)
 
-        key, err := properties.loadConvert(lr.lineBuf, 0, keyLen, convtBuf)
+        key, err := properties.loadConvert(lr.lineBuf, 0, temp.keyLen, temp.convtBuf)
         if err != nil {
             return err
         }
-        value, err := properties.loadConvert(lr.lineBuf, valueStart, limit-valueStart, convtBuf)
+        value, err := properties.loadConvert(lr.lineBuf, temp.valueStart, temp.limit-temp.valueStart, temp.convtBuf)
         if err != nil {
             return err
         }
@@ -192,6 +168,40 @@ func (properties *Properties) load0(lr *LineReader) error {
     }
 
     return nil
+}
+
+func (properties *Properties) load0Loop(lr *LineReader, temp *load0Temp) {
+    // fmt.Println("line=<" + string(lr.(*lineReader).lineBuf[:limit]) + ">")
+    temp.precedingBackslash = false
+    for temp.keyLen < temp.limit {
+        temp.c = lr.lineBuf[temp.keyLen]
+        // need check if escaped.
+        if (temp.c == '=' || temp.c == ':') && !temp.precedingBackslash {
+            temp.valueStart = temp.keyLen + 1
+            temp.hasSep = true
+            break
+        } else if (temp.c == ' ' || temp.c == '\t' || temp.c == '\f') && !temp.precedingBackslash {
+            temp.valueStart = temp.keyLen + 1
+            break
+        }
+        if temp.c == '\\' {
+            temp.precedingBackslash = !temp.precedingBackslash
+        } else {
+            temp.precedingBackslash = false
+        }
+        temp.keyLen++
+    }
+    for temp.valueStart < temp.limit {
+        temp.c = lr.lineBuf[temp.valueStart]
+        if temp.c != ' ' && temp.c != '\t' && temp.c != '\f' {
+            if !temp.hasSep && (temp.c == '=' || temp.c == ':') {
+                temp.hasSep = true
+            } else {
+                break
+            }
+        }
+        temp.valueStart++
+    }
 }
 
 func (properties *Properties) loadConvert(in []byte, off, length int, convtBuf []byte) (string, error) {

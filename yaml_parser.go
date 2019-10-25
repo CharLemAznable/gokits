@@ -283,7 +283,7 @@ func getType(line []byte) (typ, split int) {
         typ = typMapping
         split = idx
     } else if line[idx] == ' ' {
-        typ, split = seekColon(idx, line)
+        seekColon(idx, line, &typ, &split)
     }
 
     if typ == typMapping && split+1 < len(line) && line[split+1] != ' ' {
@@ -294,7 +294,7 @@ func getType(line []byte) (typ, split int) {
     return
 }
 
-func seekColon(idx int, line []byte) (typ, split int) {
+func seekColon(idx int, line []byte, typ *int, split *int) {
     // we have a space
     // need to see if its all spaces until a :
     for i := idx; i < len(line); i++ {
@@ -307,14 +307,13 @@ func seekColon(idx int, line []byte) (typ, split int) {
                 continue
             }
 
-            typ = typMapping
-            split = i
+            *typ = typMapping
+            *split = i
             break
         default:
             break
         }
     }
-    return
 }
 
 // lineReader implementations
