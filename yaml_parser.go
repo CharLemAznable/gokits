@@ -283,25 +283,7 @@ func getType(line []byte) (typ, split int) {
         typ = typMapping
         split = idx
     } else if line[idx] == ' ' {
-        // we have a space
-        // need to see if its all spaces until a :
-        for i := idx; i < len(line); i++ {
-            switch ch := line[i]; ch {
-            case ' ':
-                continue
-            case ':':
-                // only split on colons followed by a space
-                if i+1 < len(line) && line[i+1] != ' ' {
-                    continue
-                }
-
-                typ = typMapping
-                split = i
-                break
-            default:
-                break
-            }
-        }
+        typ, split = seekColon(idx, line)
     }
 
     if typ == typMapping && split+1 < len(line) && line[split+1] != ' ' {
@@ -309,6 +291,29 @@ func getType(line []byte) (typ, split int) {
         split = 0
     }
 
+    return
+}
+
+func seekColon(idx int, line []byte) (typ, split int) {
+    // we have a space
+    // need to see if its all spaces until a :
+    for i := idx; i < len(line); i++ {
+        switch ch := line[i]; ch {
+        case ' ':
+            continue
+        case ':':
+            // only split on colons followed by a space
+            if i+1 < len(line) && line[i+1] != ' ' {
+                continue
+            }
+
+            typ = typMapping
+            split = i
+            break
+        default:
+            break
+        }
+    }
     return
 }
 

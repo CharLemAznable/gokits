@@ -209,22 +209,9 @@ func (properties *Properties) loadConvert(in []byte, off, length int, convtBuf [
             aChar = in[off]
             off++
             if aChar == 'u' {
-                // Read the xxxx
-                value := 0
-
-                for i := 0; i < 4; i++ {
-                    aChar = in[off]
-                    off++
-                    switch aChar {
-                    case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-                        value = (value << 4) + int(aChar) - '0'
-                    case 'a', 'b', 'c', 'd', 'e', 'f':
-                        value = (value << 4) + 10 + int(aChar) - 'a'
-                    case 'A', 'B', 'C', 'D', 'E', 'F':
-                        value = (value << 4) + 10 + int(aChar) - 'A'
-                    default:
-                        return "", errors.New("malformed \\uxxxx encoding")
-                    }
+                value, err := properties.escapeUxxx(in, &off, &aChar)
+                if nil != err {
+                    return "", errors.New("malformed \\uxxxx encoding")
                 }
                 out[outLen] = byte(value)
                 outLen++
@@ -250,6 +237,27 @@ func (properties *Properties) checkBufLen(length int, convtBuf []byte) []byte {
         return make([]byte, newLen)
     }
     return convtBuf
+}
+
+func (properties *Properties) escapeUxxx(in []byte, off *int, aChar *byte) (int, error) {
+    // Read the xxxx
+    value := 0
+
+    for i := 0; i < 4; i++ {
+        *aChar = in[*off]
+        *off++
+        switch *aChar {
+        case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+            value = (value << 4) + int(*aChar) - '0'
+        case 'a', 'b', 'c', 'd', 'e', 'f':
+            value = (value << 4) + 10 + int(*aChar) - 'a'
+        case 'A', 'B', 'C', 'D', 'E', 'F':
+            value = (value << 4) + 10 + int(*aChar) - 'A'
+        default:
+            return 0, errors.New("malformed \\uxxxx encoding")
+        }
+    }
+    return value, nil
 }
 
 func (properties *Properties) escapeFormatByte(aChar byte) byte {
