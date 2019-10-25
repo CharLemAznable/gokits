@@ -40,22 +40,8 @@ const UnknownFilter = "LoadConfiguration: Error: Could not load XML configuratio
 func (log Logger) LoadConfiguration(filename string) {
     log.Close()
 
-    // Open the configuration file
-    fd, err := os.Open(filename)
-    if err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, CouldNotOpen, filename, err)
-        return
-    }
-
-    contents, err := ioutil.ReadAll(fd)
-    if err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, CouldNotRead, filename, err)
-        return
-    }
-
-    xc := new(xmlLoggerConfig)
-    if err := xml.Unmarshal(contents, xc); err != nil {
-        _, _ = fmt.Fprintf(os.Stderr, CouldNotParse, filename, err)
+    success, xc := log.openConfigurationFile(filename)
+    if !success {
         return
     }
 
@@ -64,25 +50,7 @@ func (log Logger) LoadConfiguration(filename string) {
         var lvl level
         bad, good, enabled := false, true, false
 
-        // Check required children
-        if len(xmlfilt.Enabled) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, MissingAttribute, "enabled", filename)
-            bad = true
-        } else {
-            enabled = xmlfilt.Enabled != "false"
-        }
-        if len(xmlfilt.Tag) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, MissingChild, "tag", filename)
-            bad = true
-        }
-        if len(xmlfilt.Type) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, MissingChild, "type", filename)
-            bad = true
-        }
-        if len(xmlfilt.Level) == 0 {
-            _, _ = fmt.Fprintf(os.Stderr, MissingChild, "level", filename)
-            bad = true
-        }
+        log.checkRequiredChildren(xmlfilt, filename, &bad, &enabled)
 
         switch xmlfilt.Level {
         case "FINEST":
@@ -136,6 +104,50 @@ func (log Logger) LoadConfiguration(filename string) {
         }
 
         log[xmlfilt.Tag] = &LogFilter{lvl, filt}
+    }
+}
+
+func (log Logger) openConfigurationFile(filename string) (bool, *xmlLoggerConfig) {
+    // Open the configuration file
+    fd, err := os.Open(filename)
+    if err != nil {
+        _, _ = fmt.Fprintf(os.Stderr, CouldNotOpen, filename, err)
+        return false, nil
+    }
+
+    contents, err := ioutil.ReadAll(fd)
+    if err != nil {
+        _, _ = fmt.Fprintf(os.Stderr, CouldNotRead, filename, err)
+        return false, nil
+    }
+
+    xc := new(xmlLoggerConfig)
+    if err := xml.Unmarshal(contents, xc); err != nil {
+        _, _ = fmt.Fprintf(os.Stderr, CouldNotParse, filename, err)
+        return false, nil
+    }
+    return true, xc
+}
+
+func (log Logger) checkRequiredChildren(xmlfilter xmlFilter, filename string, bad *bool, enabled *bool) {
+    // Check required children
+    if len(xmlfilter.Enabled) == 0 {
+        _, _ = fmt.Fprintf(os.Stderr, MissingAttribute, "enabled", filename)
+        *bad = true
+    } else {
+        *enabled = xmlfilter.Enabled != "false"
+    }
+    if len(xmlfilter.Tag) == 0 {
+        _, _ = fmt.Fprintf(os.Stderr, MissingChild, "tag", filename)
+        *bad = true
+    }
+    if len(xmlfilter.Type) == 0 {
+        _, _ = fmt.Fprintf(os.Stderr, MissingChild, "type", filename)
+        *bad = true
+    }
+    if len(xmlfilter.Level) == 0 {
+        _, _ = fmt.Fprintf(os.Stderr, MissingChild, "level", filename)
+        *bad = true
     }
 }
 

@@ -152,9 +152,9 @@ func (lineReader *LineReader) readEOL(isCommentLine *bool, length *int,
         *isNewLine = true
         *skipWhiteSpace = true
         *length = 0
-        return false, *length
+        return true, *length
     }
-    return true, *length
+    return false, *length
 }
 
 func (lineReader *LineReader) readNext(precedingBackslash *bool, length *int,
