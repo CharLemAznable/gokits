@@ -404,7 +404,7 @@ func (properties *Properties) saveConvert(theString string, escapeSpace, escapeU
         // Handle common case first, selecting largest block that
         // avoids the specials below
         if (aChar > 61) && (aChar < 127) {
-            properties.writeEscapeBackSlash(outBuffer, aChar)
+            writeEscapeBackSlash(&outBuffer, aChar)
             continue
         }
         switch aChar {
@@ -431,14 +431,14 @@ func (properties *Properties) saveConvert(theString string, escapeSpace, escapeU
             outBuffer.WriteByte('\\')
             outBuffer.WriteByte(aChar)
         default:
-            properties.writeDefault(outBuffer, aChar, escapeUnicode)
+            writeDefault(&outBuffer, aChar, escapeUnicode)
         }
     }
 
     return outBuffer.String()
 }
 
-func (properties *Properties) writeEscapeBackSlash(outBuffer bytes.Buffer, aChar uint8) {
+func writeEscapeBackSlash(outBuffer *bytes.Buffer, aChar uint8) {
     if aChar == '\\' {
         outBuffer.WriteByte('\\')
         outBuffer.WriteByte('\\')
@@ -447,7 +447,7 @@ func (properties *Properties) writeEscapeBackSlash(outBuffer bytes.Buffer, aChar
     outBuffer.WriteByte(aChar)
 }
 
-func (properties *Properties) writeDefault(outBuffer bytes.Buffer, aChar uint8, escapeUnicode bool) {
+func writeDefault(outBuffer *bytes.Buffer, aChar uint8, escapeUnicode bool) {
     if ((aChar < 0x0020) || (aChar > 0x007e)) && escapeUnicode {
         outBuffer.WriteByte('\\')
         outBuffer.WriteByte('u')
