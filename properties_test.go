@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "fmt"
     "os"
     "testing"
 )
@@ -88,6 +89,8 @@ func TestNewProperties(t *testing.T) {
     }
     for _, name := range properties.StringPropertyNames() {
         if properties.GetProperty(name) != properties2.GetProperty(name) {
+            fmt.Println(properties.GetProperty(name))
+            fmt.Println(properties2.GetProperty(name))
             t.Fail()
         }
     }

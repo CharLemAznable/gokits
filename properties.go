@@ -149,13 +149,8 @@ func (properties *Properties) load0(lr *LineReader) error {
     }
 
     for temp.limit, _ = lr.ReadLine(); temp.limit >= 0; temp.limit, _ = lr.ReadLine() {
-        temp.c = 0
-        temp.keyLen = 0
-        temp.valueStart = temp.limit
-        temp.hasSep = false
-
         properties.load0Loop1(lr, temp)
-        properties.load0Loop1(lr, temp)
+        properties.load0Loop2(lr, temp)
 
         key, err := properties.loadConvert(lr.lineBuf, 0, temp.keyLen, temp.convtBuf)
         if err != nil {
@@ -172,6 +167,10 @@ func (properties *Properties) load0(lr *LineReader) error {
 }
 
 func (properties *Properties) load0Loop1(lr *LineReader, temp *load0Temp) {
+    temp.c = 0
+    temp.keyLen = 0
+    temp.valueStart = temp.limit
+    temp.hasSep = false
     // fmt.Println("line=<" + string(lr.(*lineReader).lineBuf[:limit]) + ">")
     temp.precedingBackslash = false
     for temp.keyLen < temp.limit {
@@ -347,10 +346,10 @@ func writeComments(bw *bufio.Writer, comments string) (err error) {
         return err
     }
     temp := &writeCommentsTemp{
-        length : len(comments),
-        current : 0,
-        last : 0,
-        uu : make([]byte, 6),
+        length:  len(comments),
+        current: 0,
+        last:    0,
+        uu:      make([]byte, 6),
     }
     temp.uu[0] = '\\'
     temp.uu[1] = 'u'
