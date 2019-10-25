@@ -146,7 +146,7 @@ func parseNodeInlineValue(r lineReader, line *indentedLine) ([]int, []string) {
 
             trimmed := bytes.TrimSpace(end)
             if len(trimmed) == 1 && trimmed[0] == '|' {
-                text := parseTypMappingLoog(r)
+                text := parseTypMappingLoop(r)
                 types = append(types, typScalar)
                 pieces = append(pieces, string(text))
                 return
@@ -163,7 +163,7 @@ func parseNodeInlineValue(r lineReader, line *indentedLine) ([]int, []string) {
     return types, pieces
 }
 
-func parseTypMappingLoog(r lineReader) string {
+func parseTypMappingLoop(r lineReader) string {
     text := ""
     for {
         l := r.Next(1)
@@ -216,50 +216,52 @@ func parsePrevNodeLoop(r lineReader, line *indentedLine,
         }
         current = YamlScalar(piece)
     case typMapping:
-        var mapNode YamlMap
-        var ok bool
-        var child YamlNode
-
-        // GetString the current map, if there is one
-        if mapNode, ok = current.(YamlMap); current != nil && !ok {
-            _ = current.(YamlMap) // panic
-        } else if current == nil {
-            mapNode = make(YamlMap)
-        }
-
-        if _, inlineMap := prev.(YamlScalar); inlineMap && last > 0 {
-            current = YamlMap{
-                piece: prev,
-            }
-            break
-        }
-
-        child = parseNode(r, line.indent+1, prev)
-        mapNode[piece] = child
-        current = mapNode
+        // var mapNode YamlMap
+        // var ok bool
+        // var child YamlNode
+        //
+        // // GetString the current map, if there is one
+        // if mapNode, ok = current.(YamlMap); current != nil && !ok {
+        //     _ = current.(YamlMap) // panic
+        // } else if current == nil {
+        //     mapNode = make(YamlMap)
+        // }
+        //
+        // if _, inlineMap := prev.(YamlScalar); inlineMap && last > 0 {
+        //     current = YamlMap{
+        //         piece: prev,
+        //     }
+        //     break
+        // }
+        //
+        // child = parseNode(r, line.indent+1, prev)
+        // mapNode[piece] = child
+        // current = mapNode
+        current = parseTypMappingCurrent(r, line, current, prev, piece, last)
 
     case typSequence:
-        var listNode YamlList
-        var ok bool
-        var child YamlNode
-
-        // GetString the current list, if there is one
-        if listNode, ok = current.(YamlList); current != nil && !ok {
-            _ = current.(YamlList) // panic
-        } else if current == nil {
-            listNode = make(YamlList, 0)
-        }
-
-        if _, inlineList := prev.(YamlScalar); inlineList && last > 0 {
-            current = YamlList{
-                prev,
-            }
-            break
-        }
-
-        child = parseNode(r, line.indent+1, prev)
-        listNode = append(listNode, child)
-        current = listNode
+        // var listNode YamlList
+        // var ok bool
+        // var child YamlNode
+        //
+        // // GetString the current list, if there is one
+        // if listNode, ok = current.(YamlList); current != nil && !ok {
+        //     _ = current.(YamlList) // panic
+        // } else if current == nil {
+        //     listNode = make(YamlList, 0)
+        // }
+        //
+        // if _, inlineList := prev.(YamlScalar); inlineList && last > 0 {
+        //     current = YamlList{
+        //         prev,
+        //     }
+        //     break
+        // }
+        //
+        // child = parseNode(r, line.indent+1, prev)
+        // listNode = append(listNode, child)
+        // current = listNode
+        current = parseTypSequenceCurrent(r, line, current, prev, last)
     }
 
     if last < 0 {
@@ -269,6 +271,54 @@ func parsePrevNodeLoop(r lineReader, line *indentedLine,
     *types = (*types)[:last]
     *pieces = (*pieces)[:last]
     return current
+}
+
+func parseTypMappingCurrent(r lineReader, line *indentedLine,
+    current YamlNode, prev YamlNode, piece string, last int) YamlMap {
+    var mapNode YamlMap
+    var ok bool
+    var child YamlNode
+
+    // GetString the current map, if there is one
+    if mapNode, ok = current.(YamlMap); current != nil && !ok {
+        _ = current.(YamlMap) // panic
+    } else if current == nil {
+        mapNode = make(YamlMap)
+    }
+
+    if _, inlineMap := prev.(YamlScalar); inlineMap && last > 0 {
+        return YamlMap{
+            piece: prev,
+        }
+    }
+
+    child = parseNode(r, line.indent+1, prev)
+    mapNode[piece] = child
+    return mapNode
+}
+
+func parseTypSequenceCurrent(r lineReader, line *indentedLine,
+    current YamlNode, prev YamlNode, last int) YamlList {
+    var listNode YamlList
+    var ok bool
+    var child YamlNode
+
+    // GetString the current list, if there is one
+    if listNode, ok = current.(YamlList); current != nil && !ok {
+        _ = current.(YamlList) // panic
+    } else if current == nil {
+        listNode = make(YamlList, 0)
+    }
+
+    if _, inlineList := prev.(YamlScalar); inlineList && last > 0 {
+        return YamlList{
+            prev,
+        }
+    }
+
+    child = parseNode(r, line.indent+1, prev)
+    listNode = append(listNode, child)
+    return listNode
 }
 
 func getType(line []byte) (typ, split int) {
