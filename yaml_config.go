@@ -332,51 +332,61 @@ func YamlChild(root YamlNode, spec string) (YamlNode, error) {
 
         switch s[0] {
         case '[':
-            s, ok := n.(YamlList)
-            if !ok {
-                return nil, &YamlNodeTypeMismatch{
-                    Node:     n,
-                    Expected: "gokits.YamlList",
-                    Full:     spec,
-                    Spec:     last,
-                    Token:    tok,
-                }
-            }
-
-            if tok[0] == '[' && tok[len(tok)-1] == ']' {
-                if num, err := strconv.Atoi(tok[1 : len(tok)-1]); err == nil {
-                    if num >= 0 && num < len(s) {
-                        return recur(s[num], last+tok, remain)
-                    }
-                }
-            }
-            return nil, &YamlNodeNotFound{
-                Full: spec,
-                Spec: last + tok,
-            }
+            return parseYamlList(n, spec, last, tok, remain, recur)
         default:
-            m, ok := n.(YamlMap)
-            if !ok {
-                return nil, &YamlNodeTypeMismatch{
-                    Node:     n,
-                    Expected: "gokits.YamlMap",
-                    Full:     spec,
-                    Spec:     last,
-                    Token:    tok,
-                }
-            }
-
-            n, ok = m[tok[1:]]
-            if !ok {
-                return nil, &YamlNodeNotFound{
-                    Full: spec,
-                    Spec: last + tok,
-                }
-            }
-            return recur(n, last+tok, remain)
+            return parseDefault(n, spec, last, tok, remain, recur)
         }
     }
     return recur(root, "", spec)
+}
+
+func parseYamlList(n YamlNode, spec string, last string, tok string, remain string,
+    recur func(YamlNode, string, string) (YamlNode, error)) (YamlNode, error) {
+    s, ok := n.(YamlList)
+    if !ok {
+        return nil, &YamlNodeTypeMismatch{
+            Node:     n,
+            Expected: "gokits.YamlList",
+            Full:     spec,
+            Spec:     last,
+            Token:    tok,
+        }
+    }
+
+    if tok[0] == '[' && tok[len(tok)-1] == ']' {
+        if num, err := strconv.Atoi(tok[1 : len(tok)-1]); err == nil {
+            if num >= 0 && num < len(s) {
+                return recur(s[num], last+tok, remain)
+            }
+        }
+    }
+    return nil, &YamlNodeNotFound{
+        Full: spec,
+        Spec: last + tok,
+    }
+}
+
+func parseDefault(n YamlNode, spec string, last string, tok string, remain string,
+    recur func(YamlNode, string, string) (YamlNode, error)) (YamlNode, error) {
+    m, ok := n.(YamlMap)
+    if !ok {
+        return nil, &YamlNodeTypeMismatch{
+            Node:     n,
+            Expected: "gokits.YamlMap",
+            Full:     spec,
+            Spec:     last,
+            Token:    tok,
+        }
+    }
+
+    n, ok = m[tok[1:]]
+    if !ok {
+        return nil, &YamlNodeNotFound{
+            Full: spec,
+            Spec: last + tok,
+        }
+    }
+    return recur(n, last+tok, remain)
 }
 
 type YamlNodeNotFound struct {
