@@ -13,6 +13,18 @@ type LineReader struct {
     reader    io.Reader
 }
 
+type readingLineTemp struct {
+    length             int
+    c                  byte
+    skipWhiteSpace     bool
+    isCommentLine      bool
+    isNewLine          bool
+    appendedLineBegin  bool
+    precedingBackslash bool
+    skipLF             bool
+    err                error
+}
+
 func NewLineReader(reader io.Reader) *LineReader {
     return &LineReader{
         inByteBuf: make([]byte, 8192),
@@ -24,49 +36,42 @@ func NewLineReader(reader io.Reader) *LineReader {
 }
 
 func (lineReader *LineReader) ReadLine() (int, error) {
-    length := 0
-    var c byte = 0
-    skipWhiteSpace := true
-    isCommentLine := false
-    isNewLine := true
-    appendedLineBegin := false
-    precedingBackslash := false
-    skipLF := false
+    temp := &readingLineTemp{
+        length:             0,
+        c:                  0,
+        skipWhiteSpace:     true,
+        isCommentLine:      false,
+        isNewLine:          true,
+        appendedLineBegin:  false,
+        precedingBackslash: false,
+        skipLF:             false,
+        err:                nil,
+    }
 
     for true {
-        ret, lth, err := lineReader.readInByteBuf(
-            length, isCommentLine, precedingBackslash)
+        ret := lineReader.readInByteBuf(temp)
         if ret {
-            return lth, err
-        } else {
-            length = lth
+            return temp.length, temp.err
         }
 
-        c = lineReader.inByteBuf[lineReader.inOff]
+        temp.c = lineReader.inByteBuf[lineReader.inOff]
         lineReader.inOff++
 
-        if lineReader.readSkip(&skipLF, &c,
-            &skipWhiteSpace, &appendedLineBegin,
-            &isNewLine, &isCommentLine) {
+        if lineReader.readSkip(temp) {
             continue
         }
 
-        if c != '\n' && c != '\r' {
-            lineReader.readLine(&length, c, &precedingBackslash)
+        if temp.c != '\n' && temp.c != '\r' {
+            lineReader.readLine(temp)
         } else {
-            cont, lth := lineReader.readEOL(&isCommentLine,
-                &length, &isNewLine, &skipWhiteSpace)
-            length = lth
+            cont := lineReader.readEOL(temp)
             if cont {
                 continue
             }
 
-            ret, lth, err := lineReader.readNext(&precedingBackslash, &length,
-                &skipWhiteSpace, &appendedLineBegin, c, &skipLF)
+            ret := lineReader.readNext(temp)
             if ret {
-                return lth, err
-            } else {
-                length = lth
+                return temp.length, temp.err
             }
         }
     }
@@ -76,59 +81,58 @@ func (lineReader *LineReader) ReadLine() (int, error) {
     }
 }
 
-func (lineReader *LineReader) readInByteBuf(length int, isCommentLine bool, precedingBackslash bool) (bool, int, error) {
+func (lineReader *LineReader) readInByteBuf(temp *readingLineTemp) bool {
     if lineReader.inOff >= lineReader.inLimit {
         n, err := lineReader.reader.Read(lineReader.inByteBuf)
         lineReader.inLimit = n
         lineReader.inOff = 0
         if nil != err || lineReader.inLimit <= 0 {
-            if length == 0 || isCommentLine {
-                return true, -1, err
+            if temp.length == 0 || temp.isCommentLine {
+                temp.length = -1
+                temp.err = err
+                return true
             }
-            if precedingBackslash {
-                length--
+            if temp.precedingBackslash {
+                temp.length--
             }
-            return true, length, nil
-        }
-    }
-    return false, length, nil
-}
-
-func (lineReader *LineReader) readSkip(skipLF *bool, c *byte,
-    skipWhiteSpace *bool, appendedLineBegin *bool,
-    isNewLine *bool, isCommentLine *bool) bool {
-
-    if *skipLF {
-        *skipLF = false
-        if *c == '\n' {
-            return true
-        }
-    }
-    if *skipWhiteSpace {
-        if *c == ' ' || *c == '\t' || *c == '\f' {
-            return true
-        }
-        if !*appendedLineBegin && (*c == '\r' || *c == '\n') {
-            return true
-        }
-        *skipWhiteSpace = false
-        *appendedLineBegin = false
-    }
-    if *isNewLine {
-        *isNewLine = false
-        if *c == '#' || *c == '!' {
-            *isCommentLine = true
             return true
         }
     }
     return false
 }
 
-func (lineReader *LineReader) readLine(length *int, c byte, precedingBackslash *bool) {
-    lineReader.lineBuf[*length] = c
-    *length++
-    if *length == len(lineReader.lineBuf) {
-        newLength := *length * 2
+func (lineReader *LineReader) readSkip(temp *readingLineTemp) bool {
+    if temp.skipLF {
+        temp.skipLF = false
+        if temp.c == '\n' {
+            return true
+        }
+    }
+    if temp.skipWhiteSpace {
+        if temp.c == ' ' || temp.c == '\t' || temp.c == '\f' {
+            return true
+        }
+        if !temp.appendedLineBegin && (temp.c == '\r' || temp.c == '\n') {
+            return true
+        }
+        temp.skipWhiteSpace = false
+        temp.appendedLineBegin = false
+    }
+    if temp.isNewLine {
+        temp.isNewLine = false
+        if temp.c == '#' || temp.c == '!' {
+            temp.isCommentLine = true
+            return true
+        }
+    }
+    return false
+}
+
+func (lineReader *LineReader) readLine(temp *readingLineTemp) {
+    lineReader.lineBuf[temp.length] = temp.c
+    temp.length++
+    if temp.length == len(lineReader.lineBuf) {
+        newLength := temp.length * 2
         if newLength < 0 {
             newLength = int(^uint(0) >> 1)
         }
@@ -137,52 +141,50 @@ func (lineReader *LineReader) readLine(length *int, c byte, precedingBackslash *
         lineReader.lineBuf = buf
     }
     // flip the preceding backslash flag
-    if c == '\\' {
-        *precedingBackslash = !*precedingBackslash
+    if temp.c == '\\' {
+        temp.precedingBackslash = !temp.precedingBackslash
     } else {
-        *precedingBackslash = false
+        temp.precedingBackslash = false
     }
 }
 
-func (lineReader *LineReader) readEOL(isCommentLine *bool, length *int,
-    isNewLine *bool, skipWhiteSpace *bool) (bool, int) {
+func (lineReader *LineReader) readEOL(temp *readingLineTemp) bool {
     // reached EOL
-    if *isCommentLine || *length == 0 {
-        *isCommentLine = false
-        *isNewLine = true
-        *skipWhiteSpace = true
-        *length = 0
-        return true, *length
+    if temp.isCommentLine || temp.length == 0 {
+        temp.isCommentLine = false
+        temp.isNewLine = true
+        temp.skipWhiteSpace = true
+        temp.length = 0
+        return true
     }
-    return false, *length
+    return false
 }
 
-func (lineReader *LineReader) readNext(precedingBackslash *bool, length *int,
-    skipWhiteSpace *bool, appendedLineBegin *bool, c byte, skipLF *bool) (bool, int, error) {
+func (lineReader *LineReader) readNext(temp *readingLineTemp) bool {
     if lineReader.inOff >= lineReader.inLimit {
         n, err := lineReader.reader.Read(lineReader.inByteBuf)
         lineReader.inLimit = n
         lineReader.inOff = 0
         if nil != err || lineReader.inLimit <= 0 {
-            if *precedingBackslash {
-                *length--
+            if temp.precedingBackslash {
+                temp.length--
             }
-            return true, *length, err
+            return true
         }
     }
-    if *precedingBackslash {
-        *length -= 1
+    if temp.precedingBackslash {
+        temp.length -= 1
         // skip the leading whitespace characters in following line
-        *skipWhiteSpace = true
-        *appendedLineBegin = true
-        *precedingBackslash = false
-        if c == '\r' {
-            *skipLF = true
+        temp.skipWhiteSpace = true
+        temp.appendedLineBegin = true
+        temp.precedingBackslash = false
+        if temp.c == '\r' {
+            temp.skipLF = true
         }
     } else {
-        return true, *length, nil
+        return true
     }
-    return false, *length, nil
+    return false
 }
 
 type LineReaderException struct {
