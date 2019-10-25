@@ -154,7 +154,8 @@ func (properties *Properties) load0(lr *LineReader) error {
         temp.valueStart = temp.limit
         temp.hasSep = false
 
-        properties.load0Loop(lr, temp)
+        properties.load0Loop1(lr, temp)
+        properties.load0Loop1(lr, temp)
 
         key, err := properties.loadConvert(lr.lineBuf, 0, temp.keyLen, temp.convtBuf)
         if err != nil {
@@ -170,7 +171,7 @@ func (properties *Properties) load0(lr *LineReader) error {
     return nil
 }
 
-func (properties *Properties) load0Loop(lr *LineReader, temp *load0Temp) {
+func (properties *Properties) load0Loop1(lr *LineReader, temp *load0Temp) {
     // fmt.Println("line=<" + string(lr.(*lineReader).lineBuf[:limit]) + ">")
     temp.precedingBackslash = false
     for temp.keyLen < temp.limit {
@@ -191,6 +192,9 @@ func (properties *Properties) load0Loop(lr *LineReader, temp *load0Temp) {
         }
         temp.keyLen++
     }
+}
+
+func (properties *Properties) load0Loop2(lr *LineReader, temp *load0Temp) {
     for temp.valueStart < temp.limit {
         temp.c = lr.lineBuf[temp.valueStart]
         if temp.c != ' ' && temp.c != '\t' && temp.c != '\f' {
@@ -331,59 +335,80 @@ func (properties *Properties) store0(bw *bufio.Writer, comments string, escUnico
     return bw.Flush()
 }
 
+type writeCommentsTemp struct {
+    length  int
+    current int
+    last    int
+    uu      []byte
+}
+
 func writeComments(bw *bufio.Writer, comments string) (err error) {
     if err = bw.WriteByte('#'); err != nil {
         return err
     }
-    length := len(comments)
-    current := 0
-    last := 0
-    uu := make([]byte, 6)
-    uu[0] = '\\'
-    uu[1] = 'u'
-    for current < length {
-        c := comments[current]
+    temp := &writeCommentsTemp{
+        length : len(comments),
+        current : 0,
+        last : 0,
+        uu : make([]byte, 6),
+    }
+    temp.uu[0] = '\\'
+    temp.uu[1] = 'u'
+    for temp.current < temp.length {
+        c := comments[temp.current]
         if c > '\u00ff' || c == '\n' || c == '\r' {
-            if last != current {
-                if _, err = bw.Write([]byte(comments)[last:current]); err != nil {
-                    return err
-                }
+            if err = writeLastToCurrent(bw, comments, temp); err != nil {
+                return err
             }
-            if c > '\u00ff' {
-                uu[2] = toHex(int(c>>12) & 0xf)
-                uu[3] = toHex(int(c>>8) & 0xf)
-                uu[4] = toHex(int(c>>4) & 0xf)
-                uu[5] = toHex(int(c) & 0xf)
-                if _, err = bw.Write(uu); err != nil {
-                    return err
-                }
-            } else {
-                if _, err = bw.Write(newLine()); err != nil {
-                    return err
-                }
-                if c == '\r' && current != length-1 && comments[current+1] == '\n' {
-                    current++
-                }
-                if current == length-1 || comments[current+1] != '#' && comments[current+1] != '!' {
-                    if err = bw.WriteByte('#'); err != nil {
-                        return err
-                    }
-                }
+            if err = writeChar(bw, comments, temp, c); err != nil {
+                return nil
             }
-            last = current + 1
+            temp.last = temp.current + 1
         }
-        current++
+        temp.current++
     }
 
-    if last != current {
-        if _, err = bw.Write([]byte(comments)[last:current]); err != nil {
-            return err
-        }
+    if err = writeLastToCurrent(bw, comments, temp); err != nil {
+        return err
     }
     if _, err = bw.Write(newLine()); err != nil {
         return err
     }
 
+    return nil
+}
+
+func writeLastToCurrent(bw *bufio.Writer, comments string, temp *writeCommentsTemp) error {
+    if temp.last != temp.current {
+        if _, err := bw.Write([]byte(comments)[temp.last:temp.current]); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+
+func writeChar(bw *bufio.Writer, comments string, temp *writeCommentsTemp, c uint8) error {
+    if c > '\u00ff' {
+        temp.uu[2] = toHex(int(c>>12) & 0xf)
+        temp.uu[3] = toHex(int(c>>8) & 0xf)
+        temp.uu[4] = toHex(int(c>>4) & 0xf)
+        temp.uu[5] = toHex(int(c) & 0xf)
+        if _, err := bw.Write(temp.uu); err != nil {
+            return err
+        }
+    } else {
+        if _, err := bw.Write(newLine()); err != nil {
+            return err
+        }
+        if c == '\r' && temp.current != temp.length-1 && comments[temp.current+1] == '\n' {
+            temp.current++
+        }
+        if temp.current == temp.length-1 || comments[temp.current+1] != '#' && comments[temp.current+1] != '!' {
+            if err := bw.WriteByte('#'); err != nil {
+                return err
+            }
+        }
+    }
     return nil
 }
 
