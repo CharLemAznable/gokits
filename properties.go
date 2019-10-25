@@ -402,10 +402,17 @@ func writeChar(bw *bufio.Writer, comments string, temp *writeCommentsTemp, c uin
         if c == '\r' && temp.current != temp.length-1 && comments[temp.current+1] == '\n' {
             temp.current++
         }
-        if temp.current == temp.length-1 || comments[temp.current+1] != '#' && comments[temp.current+1] != '!' {
-            if err := bw.WriteByte('#'); err != nil {
-                return err
-            }
+        if err := writeCommentPrefix(bw, comments, temp); err != nil {
+            return err
+        }
+    }
+    return nil
+}
+
+func writeCommentPrefix(bw *bufio.Writer, comments string, temp *writeCommentsTemp) error {
+    if temp.current == temp.length-1 || comments[temp.current+1] != '#' && comments[temp.current+1] != '!' {
+        if err := bw.WriteByte('#'); err != nil {
+            return err
         }
     }
     return nil
