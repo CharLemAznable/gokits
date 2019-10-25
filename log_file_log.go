@@ -90,33 +90,9 @@ func (w *FileLogWriter) loopInternal() {
                 return
             }
         case rec, ok := <-w.rec:
-            if !ok {
-                // Flush
-                _ = w.file.Sync()
+            if ret := w.recInternal(ok, rec); ret {
                 return
             }
-            now := time.Now()
-            if (w.maxlines > 0 && w.maxlines_curlines >= w.maxlines) ||
-                (w.maxsize > 0 && w.maxsize_cursize >= w.maxsize) ||
-                (w.daily && now.Day() != w.daily_opendate) {
-                if err := w.intRotate(); err != nil {
-                    _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
-                    return
-                }
-            }
-
-            // Perform the write
-            n, err := fmt.Fprint(w.file, FormatLogRecord(w.format, rec))
-            if err != nil {
-                _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
-                return
-            }
-
-            // Flush
-            _ = w.file.Sync()
-            // Update the counts
-            w.maxlines_curlines++
-            w.maxsize_cursize += n
         }
     }
 }
@@ -126,6 +102,37 @@ func (w *FileLogWriter) deferInternal() {
         _, _ = fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
         _ = w.file.Close()
     }
+}
+
+func (w *FileLogWriter) recInternal(ok bool, rec *LogRecord) bool {
+    if !ok {
+        // Flush
+        _ = w.file.Sync()
+        return true
+    }
+    now := time.Now()
+    if (w.maxlines > 0 && w.maxlines_curlines >= w.maxlines) ||
+        (w.maxsize > 0 && w.maxsize_cursize >= w.maxsize) ||
+        (w.daily && now.Day() != w.daily_opendate) {
+        if err := w.intRotate(); err != nil {
+            _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
+            return true
+        }
+    }
+
+    // Perform the write
+    n, err := fmt.Fprint(w.file, FormatLogRecord(w.format, rec))
+    if err != nil {
+        _, _ = fmt.Fprintf(os.Stderr, FileLogWriterFormat, w.filename, err)
+        return true
+    }
+
+    // Flush
+    _ = w.file.Sync()
+    // Update the counts
+    w.maxlines_curlines++
+    w.maxsize_cursize += n
+    return false
 }
 
 // Request that the logs rotate

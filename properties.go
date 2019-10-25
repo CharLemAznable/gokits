@@ -195,13 +195,7 @@ func (properties *Properties) load0(lr *LineReader) error {
 }
 
 func (properties *Properties) loadConvert(in []byte, off, length int, convtBuf []byte) (string, error) {
-    if len(convtBuf) < length {
-        newLen := length * 2
-        if newLen < 0 {
-            newLen = int(^uint(0) >> 1)
-        }
-        convtBuf = make([]byte, newLen)
-    }
+    convtBuf = properties.checkBufLen(length, convtBuf)
 
     var aChar byte
     out := convtBuf
@@ -235,19 +229,7 @@ func (properties *Properties) loadConvert(in []byte, off, length int, convtBuf [
                 out[outLen] = byte(value)
                 outLen++
             } else {
-                if aChar == 't' {
-                    aChar = '\t'
-                } else
-                if aChar == 'r' {
-                    aChar = '\r'
-                } else
-                if aChar == 'n' {
-                    aChar = '\n'
-                } else
-                if aChar == 'f' {
-                    aChar = '\f'
-                }
-                out[outLen] = aChar
+                out[outLen] = properties.escapeFormatByte(aChar)
                 outLen++
             }
         } else {
@@ -257,6 +239,33 @@ func (properties *Properties) loadConvert(in []byte, off, length int, convtBuf [
     }
 
     return string(out[:outLen]), nil
+}
+
+func (properties *Properties) checkBufLen(length int, convtBuf []byte) []byte {
+    if len(convtBuf) < length {
+        newLen := length * 2
+        if newLen < 0 {
+            newLen = int(^uint(0) >> 1)
+        }
+        return make([]byte, newLen)
+    }
+    return convtBuf
+}
+
+func (properties *Properties) escapeFormatByte(aChar byte) byte {
+    if aChar == 't' {
+        return '\t'
+    } else
+    if aChar == 'r' {
+        return '\r'
+    } else
+    if aChar == 'n' {
+        return '\n'
+    } else
+    if aChar == 'f' {
+        return '\f'
+    }
+    return aChar
 }
 
 func (properties *Properties) Save(writer io.Writer, comments string) {
@@ -395,12 +404,7 @@ func (properties *Properties) saveConvert(theString string, escapeSpace, escapeU
         // Handle common case first, selecting largest block that
         // avoids the specials below
         if (aChar > 61) && (aChar < 127) {
-            if aChar == '\\' {
-                outBuffer.WriteByte('\\')
-                outBuffer.WriteByte('\\')
-                continue
-            }
-            outBuffer.WriteByte(aChar)
+            properties.writeEscapeBackSlash(outBuffer, aChar)
             continue
         }
         switch aChar {
@@ -427,18 +431,31 @@ func (properties *Properties) saveConvert(theString string, escapeSpace, escapeU
             outBuffer.WriteByte('\\')
             outBuffer.WriteByte(aChar)
         default:
-            if ((aChar < 0x0020) || (aChar > 0x007e)) && escapeUnicode {
-                outBuffer.WriteByte('\\')
-                outBuffer.WriteByte('u')
-                outBuffer.WriteByte(toHex(int(aChar>>12) & 0xF))
-                outBuffer.WriteByte(toHex(int(aChar>>8) & 0xF))
-                outBuffer.WriteByte(toHex(int(aChar>>4) & 0xF))
-                outBuffer.WriteByte(toHex(int(aChar) & 0xF))
-            } else {
-                outBuffer.WriteByte(aChar)
-            }
+            properties.writeDefault(outBuffer, aChar, escapeUnicode)
         }
     }
 
     return outBuffer.String()
+}
+
+func (properties *Properties) writeEscapeBackSlash(outBuffer bytes.Buffer, aChar uint8) {
+    if aChar == '\\' {
+        outBuffer.WriteByte('\\')
+        outBuffer.WriteByte('\\')
+        return
+    }
+    outBuffer.WriteByte(aChar)
+}
+
+func (properties *Properties) writeDefault(outBuffer bytes.Buffer, aChar uint8, escapeUnicode bool) {
+    if ((aChar < 0x0020) || (aChar > 0x007e)) && escapeUnicode {
+        outBuffer.WriteByte('\\')
+        outBuffer.WriteByte('u')
+        outBuffer.WriteByte(toHex(int(aChar>>12) & 0xF))
+        outBuffer.WriteByte(toHex(int(aChar>>8) & 0xF))
+        outBuffer.WriteByte(toHex(int(aChar>>4) & 0xF))
+        outBuffer.WriteByte(toHex(int(aChar) & 0xF))
+    } else {
+        outBuffer.WriteByte(aChar)
+    }
 }
