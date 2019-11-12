@@ -112,6 +112,7 @@ func (httpReq *HttpReq) doRequest(request *http.Request) (string, error) {
     httpReq.setHeaders(request)
     httpReq.addCookies(request)
 
+    request.Close = true // fd leak without setting this
     response, err := http.DefaultClient.Do(request)
     if nil != err {
         log.Printf("%s: %s, STATUS CODE = %d\n\n%s\n",
