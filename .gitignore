@@ -15,6 +15,5 @@
 .idea
 gql_test.go
 gql_conn_test.go
-httpreq_test.go
 vendor
 go.sum
