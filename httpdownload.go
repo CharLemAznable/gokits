@@ -212,6 +212,7 @@ func (r *_HttpDownloadReader) Read(p []byte) (n int, err error) {
         return
     }
 
+    r.DelegateTime = time.Now()
     r.Progress = float64(r.Current*10000/r.Total) / 100
     if nil != r.Delegate && nil != r.Delegate.Downloading {
         r.Delegate.Downloading(r)
