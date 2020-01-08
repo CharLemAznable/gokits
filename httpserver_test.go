@@ -45,3 +45,19 @@ func TestHandleFuncOptions(t *testing.T) {
         t.Errorf("Should enabled")
     }
 }
+
+func TestHandleFunc(t *testing.T) {
+    mux := http.NewServeMux()
+    HandleFunc(mux, "/index",
+        func(w http.ResponseWriter, r *http.Request) {
+            ResponseText(w, "index")
+        })
+    testServer := httptest.NewServer(mux)
+    code, resp, _ := NewHttpReq(testServer.URL + "/index").testGet()
+    if code != http.StatusOK {
+        t.Errorf("Should response http.StatusOK")
+    }
+    if resp != "index" {
+        t.Errorf("Should response index")
+    }
+}

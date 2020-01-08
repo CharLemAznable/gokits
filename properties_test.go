@@ -11,7 +11,7 @@ func TestNewProperties(t *testing.T) {
     if nil == properties.mapper {
         t.Fail()
     }
-    if nil != properties.defaults {
+    if nil == properties.defaults || 0 != properties.defaults.Size() {
         t.Fail()
     }
 

@@ -16,14 +16,16 @@ type Properties struct {
     defaults *Properties
 }
 
-func NewProperties() *Properties {
-    return &Properties{Hashtable: *NewHashtable()}
-}
-
-func NewPropertiesDefault(defaults *Properties) *Properties {
-    properties := NewProperties()
-    properties.defaults = defaults
-    return properties
+func NewProperties(defaults ...*Properties) *Properties {
+    hashtable := NewHashtable()
+    rev := reverse(defaults)
+    for _, prop := range rev {
+        prop.enumerate(hashtable)
+    }
+    return &Properties{
+        Hashtable: *NewHashtable(),
+        defaults: &Properties{Hashtable: *hashtable},
+    }
 }
 
 func (properties *Properties) SetProperty(key string, value string) {
@@ -507,4 +509,11 @@ func writeDefault(outBuffer *bytes.Buffer, aChar uint8, escapeUnicode bool) {
     } else {
         outBuffer.WriteByte(aChar)
     }
+}
+
+func reverse(array []*Properties) []*Properties {
+    for i, j := 0, len(array)-1; i < j; i, j = i+1, j-1 {
+        array[i], array[j] = array[j], array[i]
+    }
+    return array
 }
