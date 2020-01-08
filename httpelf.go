@@ -79,7 +79,7 @@ func ModelContext(parent context.Context) *ModelCtx {
     }
 }
 
-func ModelContextWithValue(parent context.Context, key string, val interface{}) context.Context {
+func ModelContextWithValue(parent context.Context, key string, val interface{}) *ModelCtx {
     if "" == key {
         panic("empty key")
     }
