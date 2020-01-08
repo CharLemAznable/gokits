@@ -41,6 +41,14 @@ Go常用工具包.
 
   HTTP工具
 
+##### httpdownload
+
+  HTTP文件下载
+
+##### httpelf && httpserver
+
+  HTTPServer工具
+
 ##### httpreq
 
   网络请求工具
@@ -81,6 +89,14 @@ Go常用工具包.
 ##### properties
 
   实现Java Properties
+
+##### random
+
+  随机字符串
+
+##### secret
+
+  HmacSha256, AES工具
 
 ##### strconv
 

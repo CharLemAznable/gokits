@@ -138,41 +138,43 @@ func (download *HttpDownload) Start(opts ...HttpDownloadDelegateOption) {
         return
     }
 
-    go func() {
-        file, err := os.Create(fileDir)
-        if err != nil && nil != delegate.DownloadDidFailWithError {
-            delegate.DownloadDidFailWithError(download, err)
-            return
-        }
-        defer func() { _ = file.Close() }()
+    go download.internalDownload(fileDir, delegate)
+}
 
-        res, err := http.Get(download.RawURL)
-        if err != nil {
-            delegate.DownloadDidFailWithError(download, err)
-            return
-        }
-        defer func() { _ = res.Body.Close() }()
+func (download *HttpDownload) internalDownload(fileDir string, delegate HttpDownloadDelegate) {
+    file, err := os.Create(fileDir)
+    if err != nil && nil != delegate.DownloadDidFailWithError {
+        delegate.DownloadDidFailWithError(download, err)
+        return
+    }
+    defer func() { _ = file.Close() }()
 
-        reader := &_HttpDownloadReader{
-            Reader: res.Body,
-            Total:  res.ContentLength,
-        }
-        if nil != delegate.DownloadingWithProgress {
-            reader.Delegate = &_HttpDownloadReaderDelegate{
-                Downloading: func(reader *_HttpDownloadReader) {
-                    delegate.DownloadingWithProgress(download, reader.Progress)
-                },
-            }
-        }
+    res, err := http.Get(download.RawURL)
+    if err != nil {
+        delegate.DownloadDidFailWithError(download, err)
+        return
+    }
+    defer func() { _ = res.Body.Close() }()
 
-        if nil != delegate.DownloadDidStarted {
-            delegate.DownloadDidStarted(download)
+    reader := &_HttpDownloadReader{
+        Reader: res.Body,
+        Total:  res.ContentLength,
+    }
+    if nil != delegate.DownloadingWithProgress {
+        reader.Delegate = &_HttpDownloadReaderDelegate{
+            Downloading: func(reader *_HttpDownloadReader) {
+                delegate.DownloadingWithProgress(download, reader.Progress)
+            },
         }
-        _, _ = io.Copy(file, reader)
-        if nil != delegate.DownloadDidFinish {
-            delegate.DownloadDidFinish(download)
-        }
-    }()
+    }
+
+    if nil != delegate.DownloadDidStarted {
+        delegate.DownloadDidStarted(download)
+    }
+    _, _ = io.Copy(file, reader)
+    if nil != delegate.DownloadDidFinish {
+        delegate.DownloadDidFinish(download)
+    }
 }
 
 type _HttpDownloadReaderDelegate struct {
