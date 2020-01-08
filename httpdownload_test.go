@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "fmt"
     "io/ioutil"
     "net/http"
     "net/http/httptest"
@@ -8,6 +9,11 @@ import (
     "testing"
     "time"
 )
+
+func TestTemp(t *testing.T) {
+    reader := _HttpDownloadReader{}
+    fmt.Println(reader.DelegateInterval)
+}
 
 func TestHttpDownload(t *testing.T) {
     testServer := httptest.NewServer(http.HandlerFunc(
@@ -28,6 +34,7 @@ func TestHttpDownload(t *testing.T) {
         WithDownloadingWithProgress(func(download *HttpDownload, progress float64) {
             LOG.Debug("Downloading %.2f%%", progress)
         }),
+        WithDownloadingProgressInterval(0),
         WithDownloadDidFinish(func(download *HttpDownload) {
             LOG.Debug("DownloadDidFinish")
             completed = true

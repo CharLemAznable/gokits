@@ -7,6 +7,7 @@ import (
     "net/url"
     "os"
     "path/filepath"
+    "time"
 )
 
 type HttpDownload struct {
@@ -61,20 +62,24 @@ func NewHttpDownload(opts ...HttpDownloadOption) *HttpDownload {
 }
 
 type HttpDownloadDelegate struct {
-    DownloadDidFailWithError func(*HttpDownload, error)
-    DownloadDidStarted       func(*HttpDownload)
-    DownloadingWithProgress  func(*HttpDownload, float64)
-    DownloadDidFinish        func(*HttpDownload)
+    DownloadDidFailWithError    func(*HttpDownload, error)
+    DownloadDidStarted          func(*HttpDownload)
+    DownloadingWithProgress     func(*HttpDownload, float64)
+    DownloadingProgressInterval time.Duration
+    DownloadDidFinish           func(*HttpDownload)
 }
 
 type HttpDownloadDelegateOptions struct {
-    DownloadDidFailWithError func(*HttpDownload, error)
-    DownloadDidStarted       func(*HttpDownload)
-    DownloadingWithProgress  func(*HttpDownload, float64)
-    DownloadDidFinish        func(*HttpDownload)
+    DownloadDidFailWithError    func(*HttpDownload, error)
+    DownloadDidStarted          func(*HttpDownload)
+    DownloadingWithProgress     func(*HttpDownload, float64)
+    DownloadingProgressInterval time.Duration
+    DownloadDidFinish           func(*HttpDownload)
 }
 
-var defaultHttpDownloadDelegateOptions = HttpDownloadDelegateOptions{}
+var defaultHttpDownloadDelegateOptions = HttpDownloadDelegateOptions{
+    DownloadingProgressInterval: time.Second,
+}
 
 type HttpDownloadDelegateOption func(*HttpDownloadDelegateOptions)
 
@@ -90,6 +95,10 @@ func WithDownloadingWithProgress(f func(*HttpDownload, float64)) HttpDownloadDel
     return func(o *HttpDownloadDelegateOptions) { o.DownloadingWithProgress = f }
 }
 
+func WithDownloadingProgressInterval(interval time.Duration) HttpDownloadDelegateOption {
+    return func(o *HttpDownloadDelegateOptions) { o.DownloadingProgressInterval = interval }
+}
+
 func WithDownloadDidFinish(f func(*HttpDownload)) HttpDownloadDelegateOption {
     return func(o *HttpDownloadDelegateOptions) { o.DownloadDidFinish = f }
 }
@@ -100,10 +109,11 @@ func (download *HttpDownload) Start(opts ...HttpDownloadDelegateOption) {
         o(&options)
     }
     delegate := HttpDownloadDelegate{
-        DownloadDidFailWithError: options.DownloadDidFailWithError,
-        DownloadDidStarted:       options.DownloadDidStarted,
-        DownloadingWithProgress:  options.DownloadingWithProgress,
-        DownloadDidFinish:        options.DownloadDidFinish,
+        DownloadDidFailWithError:    options.DownloadDidFailWithError,
+        DownloadDidStarted:          options.DownloadDidStarted,
+        DownloadingWithProgress:     options.DownloadingWithProgress,
+        DownloadingProgressInterval: options.DownloadingProgressInterval,
+        DownloadDidFinish:           options.DownloadDidFinish,
     }
 
     parsedURL, err := url.Parse(download.RawURL)
@@ -157,8 +167,9 @@ func (download *HttpDownload) internalDownload(fileDir string, delegate HttpDown
     defer func() { _ = res.Body.Close() }()
 
     reader := &_HttpDownloadReader{
-        Reader: res.Body,
-        Total:  res.ContentLength,
+        Reader:           res.Body,
+        Total:            res.ContentLength,
+        DelegateInterval: delegate.DownloadingProgressInterval,
     }
     if nil != delegate.DownloadingWithProgress {
         reader.Delegate = &_HttpDownloadReaderDelegate{
@@ -183,15 +194,24 @@ type _HttpDownloadReaderDelegate struct {
 
 type _HttpDownloadReader struct {
     io.Reader
-    Total    int64
-    Current  int64
-    Progress float64
-    Delegate *_HttpDownloadReaderDelegate
+    Total            int64
+    Current          int64
+    Progress         float64
+    Delegate         *_HttpDownloadReaderDelegate
+    DelegateInterval time.Duration
+    DelegateTime     time.Time
 }
 
 func (r *_HttpDownloadReader) Read(p []byte) (n int, err error) {
+    if r.DelegateTime.IsZero() {
+        r.DelegateTime = time.Now()
+    }
     n, err = r.Reader.Read(p)
     r.Current += int64(n)
+    if time.Now().Sub(r.DelegateTime) < r.DelegateInterval {
+        return
+    }
+
     r.Progress = float64(r.Current*10000/r.Total) / 100
     if nil != r.Delegate && nil != r.Delegate.Downloading {
         r.Delegate.Downloading(r)
