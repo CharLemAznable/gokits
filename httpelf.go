@@ -35,7 +35,7 @@ func (w GzipResponseWriter) Write(b []byte) (int, error) {
     return w.Writer.Write(b)
 }
 
-func GzipHandlerFunc(handlerFunc http.HandlerFunc) http.HandlerFunc {
+func GzipResponse(handlerFunc http.HandlerFunc) http.HandlerFunc {
     return func(writer http.ResponseWriter, request *http.Request) {
         if !strings.Contains(request.Header.Get("Accept-Encoding"), "gzip") {
             handlerFunc(writer, request)
@@ -113,20 +113,22 @@ func ServeRedirect(redirect string) http.HandlerFunc {
 }
 
 func ServeGet(handlerFunc http.HandlerFunc) http.HandlerFunc {
-    return ServeMethod(http.MethodGet, handlerFunc)
+    return ServeMethod(handlerFunc, http.MethodGet)
 }
 
 func ServePost(handlerFunc http.HandlerFunc) http.HandlerFunc {
-    return ServeMethod(http.MethodPost, handlerFunc)
+    return ServeMethod(handlerFunc, http.MethodPost)
 }
 
-func ServeMethod(httpMethod string, handlerFunc http.HandlerFunc) http.HandlerFunc {
+func ServeMethod(handlerFunc http.HandlerFunc, httpMethods ...string) http.HandlerFunc {
     return func(writer http.ResponseWriter, request *http.Request) {
-        if httpMethod != request.Method {
-            writer.WriteHeader(http.StatusNotFound)
-            return
+        for _, method := range httpMethods {
+            if method == request.Method {
+                handlerFunc(writer, request)
+                return
+            }
         }
-        handlerFunc(writer, request)
+        writer.WriteHeader(http.StatusNotFound)
     }
 }
 

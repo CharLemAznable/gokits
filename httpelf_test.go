@@ -18,7 +18,7 @@ func TestDumpRequest(t *testing.T) {
 }
 
 func TestGzipHandlerFunc(t *testing.T) {
-    testServer := httptest.NewServer(GzipHandlerFunc(
+    testServer := httptest.NewServer(GzipResponse(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
         }))
@@ -98,7 +98,7 @@ func TestServeAjax(t *testing.T) {
         }))
     code, _, _ := NewHttpReq(testServer.URL).testGet()
     if code != http.StatusNotFound {
-        t.Errorf("Should response http.StatusOK")
+        t.Errorf("Should response http.StatusNotFound")
     }
 }
 
