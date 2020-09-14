@@ -268,3 +268,17 @@ var jstool = new Inote.JSTool();`, false)
         t.Errorf("Should minified")
     }
 }
+
+func TestEmptyHandler(t *testing.T) {
+    testServer := httptest.NewServer(EmptyHandler)
+    code, result, err := NewHttpReq(testServer.URL).testGet()
+    if code != http.StatusOK {
+        t.Errorf("Should response http.StatusOK")
+    }
+    if result != "" {
+        t.Errorf("Should response empty string")
+    }
+    if err != nil {
+        t.Errorf("Should response no error")
+    }
+}

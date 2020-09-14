@@ -187,3 +187,5 @@ func MinifyJs(jsString string, devMode bool) string {
 
     return minifiedJs
 }
+
+var EmptyHandler http.HandlerFunc = func(_ http.ResponseWriter, _ *http.Request) {}
