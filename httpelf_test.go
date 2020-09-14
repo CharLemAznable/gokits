@@ -263,7 +263,7 @@ _history: {
 		return this._history;}
 };
 var jstool = new Inote.JSTool();`, false)
-    expectJs := "var Inote={};Inote.JSTool=function(options){this.options=options||{};};Inote.JSTool.prototype={_name:'Javascript工具',_history:{'v1.0':['2011-01-18','javascript工具上线'],'v1.1':['2012-03-23','增加混淆功能'],'v1.2':['2012-07-21','升级美化功能引擎'],'v1.3':['2014-03-01','升级解密功能，支持eval,window.eval,window[\"eval\"]等的解密'],'v1.4':['2014-08-05','升级混淆功能引擎'],'v1.5':['2014-08-09','升级js压缩引擎'],'v1.6':['2015-04-11','升级js混淆引擎'],'v1.7':['2017-02-12','升级js混淆引擎']},options:{},getName:function(){return this._name;},getHistory:function(){return this._history;}};var jstool=new Inote.JSTool();"
+    expectJs := "var Inote={},jstool;Inote.JSTool=function(a){this.options=a||{}},Inote.JSTool.prototype={_name:'Javascript工具',_history:{'v1.0':['2011-01-18','javascript工具上线'],'v1.1':['2012-03-23','增加混淆功能'],'v1.2':['2012-07-21','升级美化功能引擎'],'v1.3':['2014-03-01','升级解密功能，支持eval,window.eval,window[\"eval\"]等的解密'],'v1.4':['2014-08-05','升级混淆功能引擎'],'v1.5':['2014-08-09','升级js压缩引擎'],'v1.6':['2015-04-11','升级js混淆引擎'],'v1.7':['2017-02-12','升级js混淆引擎']},options:{},getName:function(){return this._name},getHistory:function(){return this._history}},jstool=new Inote.JSTool"
     if expectJs != js {
         t.Errorf("Should minified but %s", js)
     }
