@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
     "net/url"
@@ -8,6 +9,7 @@ import (
 )
 
 func TestReverseProxy(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(http.HandlerFunc(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
@@ -19,34 +21,30 @@ func TestReverseProxy(t *testing.T) {
             reverseProxy.ServeHTTP(w, r)
         }))
     code, _, _ := NewHttpReq(reverseServer.URL).testGet()
-    if code != http.StatusOK {
-        t.Errorf("Should response http.StatusOK")
-    }
+    a.Equal(http.StatusOK, code)
 }
 
 func TestHandleFuncOptions(t *testing.T) {
+    a := assert.New(t)
     options := defaultHandleFuncOptions
     for _, o := range []HandleFuncOption{DumpRequestDisabled,
         GzipResponseDisabled, ModelContextDisabled, ContextPathDisabled} {
         o(&options)
     }
-    if options.DumpRequestEnabled || options.GzipResponseEnabled ||
-        options.ModelContextEnabled || options.ContextPathEnabled {
-        t.Errorf("Should disabled")
-    }
+    a.False(options.DumpRequestEnabled || options.GzipResponseEnabled ||
+        options.ModelContextEnabled || options.ContextPathEnabled)
 
     options = defaultHandleFuncOptions
     for _, o := range []HandleFuncOption{DumpRequestEnabled,
         GzipResponseEnabled, ModelContextEnabled, ContextPathEnabled} {
         o(&options)
     }
-    if !options.DumpRequestEnabled || !options.GzipResponseEnabled ||
-        !options.ModelContextEnabled || !options.ContextPathEnabled {
-        t.Errorf("Should enabled")
-    }
+    a.False(!options.DumpRequestEnabled || !options.GzipResponseEnabled ||
+        !options.ModelContextEnabled || !options.ContextPathEnabled)
 }
 
 func TestHandleFunc(t *testing.T) {
+    a := assert.New(t)
     mux := http.NewServeMux()
     HandleFunc(mux, "/index",
         func(w http.ResponseWriter, r *http.Request) {
@@ -54,10 +52,6 @@ func TestHandleFunc(t *testing.T) {
         })
     testServer := httptest.NewServer(mux)
     code, resp, _ := NewHttpReq(testServer.URL + "/index").testGet()
-    if code != http.StatusOK {
-        t.Errorf("Should response http.StatusOK")
-    }
-    if resp != "index" {
-        t.Errorf("Should response index")
-    }
+    a.Equal(http.StatusOK, code)
+    a.Equal("index", resp)
 }

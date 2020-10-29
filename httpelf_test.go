@@ -1,109 +1,93 @@
 package gokits
 
 import (
+    "github.com/stretchr/testify/assert"
     "net/http"
     "net/http/httptest"
     "testing"
 )
 
 func TestDumpRequest(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(DumpRequest(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
         }))
     _, err := NewHttpReq(testServer.URL).Get()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func TestGzipHandlerFunc(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(GzipResponse(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
         }))
     _, err := NewHttpReq(testServer.URL).Get()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func TestServeModelContext(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(ServeModelContext(
         func(w http.ResponseWriter, r *http.Request) {
             _, ok := r.Context().(*ModelCtx)
-            if !ok {
-                t.Errorf("Type should be ModelCtx")
-            }
+            a.True(ok)
             w.WriteHeader(http.StatusOK)
         }))
     _, err := NewHttpReq(testServer.URL).Get()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func TestServeModelContextWithValueFunc(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(ServeModelContextWithValueFunc(
         func(w http.ResponseWriter, r *http.Request) {
             modelCtx, ok := r.Context().(*ModelCtx)
-            if !ok {
-                t.Errorf("Type should be ModelCtx")
-            }
-            if modelCtx.Value("key") != "value" {
-                t.Errorf("Context[key] should be \"value\"")
-            }
+            a.True(ok)
+            a.Equal("value", modelCtx.Value("key"))
             w.WriteHeader(http.StatusOK)
         }, func() (string, interface{}) {
             return "key", "value"
         }))
     _, err := NewHttpReq(testServer.URL).Get()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func TestServeMethod(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(ServeGet(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
         }))
     code, _, _ := NewHttpReq(testServer.URL).testGet()
-    if code != http.StatusOK {
-        t.Errorf("Should response http.StatusOK")
-    }
+    a.Equal(http.StatusOK, code)
     code, _, _ = NewHttpReq(testServer.URL).testPost()
-    if code != http.StatusNotFound {
-        t.Errorf("Should response http.StatusNotFound")
-    }
+    a.Equal(http.StatusNotFound, code)
 
     testServer = httptest.NewServer(ServePost(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
         }))
     code, _, _ = NewHttpReq(testServer.URL).testGet()
-    if code != http.StatusNotFound {
-        t.Errorf("Should response http.StatusNotFound")
-    }
+    a.Equal(http.StatusNotFound, code)
     code, _, _ = NewHttpReq(testServer.URL).testPost()
-    if code != http.StatusOK {
-        t.Errorf("Should response http.StatusOK")
-    }
+    a.Equal(http.StatusOK, code)
 }
 
 func TestServeAjax(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(ServeAjax(
         func(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
         }))
     code, _, _ := NewHttpReq(testServer.URL).testGet()
-    if code != http.StatusNotFound {
-        t.Errorf("Should response http.StatusNotFound")
-    }
+    a.Equal(http.StatusNotFound, code)
 }
 
 func TestMinify(t *testing.T) {
-    html := MinifyHTML(`<!DOCTYPE html><html>
+    a := assert.New(t)
+    originalHtml := `<!DOCTYPE html><html>
 <head><meta charset="utf-8"/><script src="http://code.jquery.com/jquery-latest.min.js"></script></head>
 <body>
 <div id="wrap"><div id="header"><h1>html在线工具</h1>
@@ -122,13 +106,11 @@ func TestMinify(t *testing.T) {
 </div>
 <div id="footer">This is just an example.</div>
 </div>
-</body></html>`, false)
-    expectHtml := "<!doctype html><meta charset=utf-8><script src=http://code.jquery.com/jquery-latest.min.js></script><div id=wrap><div id=header><h1>html在线工具</h1></div><div id=main><dl><dt>v1.0<dd>2011-06-05 Html工具上线<dt>v1.1<dd>2012-01-14 修复美化功能，增加压缩<dt>v1.2<dd>2012-07-20 增加清除链接功能<dt>v1.3<dd>2014-08-05 修改 html 压缩引擎<dt>v1.4<dd>2014-08-09 增加转换为js变量的功能</dl></div><div id=footer>This is just an example.</div></div>"
-    if expectHtml != html {
-        t.Errorf("Should minified")
-    }
+</body></html>`
+    html := MinifyHTML(originalHtml, false)
+    a.False(len(html) >= len(originalHtml))
 
-    css := MinifyCSS(`/*   美化：格式化代码，使之容易阅读			*/
+    originalCss := `/*   美化：格式化代码，使之容易阅读			*/
 /*   净化：将代码单行化，并去除注释   */
 /*   整理：按照一定的顺序，重新排列css的属性   */
 /*   优化：将css的长属性值优化为简写的形式   */
@@ -225,13 +207,11 @@ blockquote:before, blockquote:after,
 q:before, q:after {
     content: '';
     content: none;
-}`, false)
-    expectCss := ".css3{box-shadow:0 0;width:calc(100% + 2em);font-size:24px}body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td{margin:0;padding:0}fieldset,img{border:0}:focus{outline:0}address,ctoolion,cite,code,dfn,em,strong,th,var,optgroup{font-style:normal;font-weight:400}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:400}abbr,acronym{border:0;font-variant:normal}input,button,textarea,select,optgroup,option{font-family:inherit;font-size:inherit;font-style:inherit;font-weight:inherit}code,kbd,samp,tt{font-size:100%}input,button,textarea,select{*font-size:100%}body{line-height:1.5}ol,ul{list-style:none}table{border-collapse:collapse;border-spacing:0}ctoolion,th{text-align:left}sup,sub{font-size:100%;vertical-align:baseline}:link,:visited,ins{text-decoration:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}"
-    if expectCss != css {
-        t.Errorf("Should minified")
-    }
+}`
+    css := MinifyCSS(originalCss, false)
+    a.False(len(css) >= len(originalCss))
 
-    js := MinifyJs(`/*   美化：格式化代码，使之容易阅读			*/
+    originalJs := `/*   美化：格式化代码，使之容易阅读			*/
 /*   净化：去掉代码中多余的注释、换行、空格等	*/
 /*   压缩：将代码压缩为更小体积，便于传输		*/
 /*   解压：将压缩后的代码转换为人可以阅读的格式	*/
@@ -262,23 +242,16 @@ _history: {
 	getHistory: function() {
 		return this._history;}
 };
-var jstool = new Inote.JSTool();`, false)
-    expectJs := "var Inote={},jstool;Inote.JSTool=function(a){this.options=a||{}},Inote.JSTool.prototype={_name:'Javascript工具',_history:{'v1.0':['2011-01-18','javascript工具上线'],'v1.1':['2012-03-23','增加混淆功能'],'v1.2':['2012-07-21','升级美化功能引擎'],'v1.3':['2014-03-01','升级解密功能，支持eval,window.eval,window[\"eval\"]等的解密'],'v1.4':['2014-08-05','升级混淆功能引擎'],'v1.5':['2014-08-09','升级js压缩引擎'],'v1.6':['2015-04-11','升级js混淆引擎'],'v1.7':['2017-02-12','升级js混淆引擎']},options:{},getName:function(){return this._name},getHistory:function(){return this._history}},jstool=new Inote.JSTool"
-    if expectJs != js {
-        t.Errorf("Should minified but %s", js)
-    }
+var jstool = new Inote.JSTool();`
+    js := MinifyJs(originalJs, false)
+    a.False(len(js) >= len(originalJs))
 }
 
 func TestEmptyHandler(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(EmptyHandler)
     code, result, err := NewHttpReq(testServer.URL).testGet()
-    if code != http.StatusOK {
-        t.Errorf("Should response http.StatusOK")
-    }
-    if result != "" {
-        t.Errorf("Should response empty string")
-    }
-    if err != nil {
-        t.Errorf("Should response no error")
-    }
+    a.Equal(http.StatusOK, code)
+    a.Equal("", result)
+    a.Nil(err)
 }

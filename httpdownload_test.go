@@ -2,6 +2,7 @@ package gokits
 
 import (
     "fmt"
+    "github.com/stretchr/testify/assert"
     "io/ioutil"
     "net/http"
     "net/http/httptest"
@@ -16,6 +17,7 @@ func TestTemp(t *testing.T) {
 }
 
 func TestHttpDownload(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(http.HandlerFunc(
         func(w http.ResponseWriter, r *http.Request) {
             ResponseText(w, "text")
@@ -25,7 +27,7 @@ func TestHttpDownload(t *testing.T) {
     completed := false
     httpDownload.Start(
         WithDownloadDidFailWithError(func(download *HttpDownload, err error) {
-            t.Errorf("Should not fail: %s", err.Error())
+            a.Fail("Should not fail")
             completed = true
         }),
         WithDownloadDidStarted(func(download *HttpDownload) {
@@ -45,9 +47,7 @@ func TestHttpDownload(t *testing.T) {
 
     testFile, _ := os.Open("download/test")
     bytes, _ := ioutil.ReadAll(testFile)
-    if "text" != string(bytes) {
-        t.Errorf("download/test file content should be \"text\"")
-    }
+    a.Equal("text", string(bytes))
     _ = testFile.Close()
 
     testServer = httptest.NewServer(http.HandlerFunc(
@@ -59,19 +59,17 @@ func TestHttpDownload(t *testing.T) {
     completed = false
     httpDownload.Start(
         WithDownloadDidFailWithError(func(download *HttpDownload, err error) {
-            if "DstFile exists, don't overwrite" != err.Error() {
-                t.Errorf("Should failed by overwrite")
-            }
+            a.Equal("DstFile exists, don't overwrite", err.Error())
             completed = true
         }),
         WithDownloadDidStarted(func(download *HttpDownload) {
-            t.Errorf("Should not download")
+            a.Fail("Should not download")
         }),
         WithDownloadingWithProgress(func(download *HttpDownload, progress float64) {
-            t.Errorf("Should not download")
+            a.Fail("Should not download")
         }),
         WithDownloadDidFinish(func(download *HttpDownload) {
-            t.Errorf("Should not download")
+            a.Fail("Should not download")
             completed = true
         }))
     for !completed {
@@ -80,8 +78,6 @@ func TestHttpDownload(t *testing.T) {
 
     testFile, _ = os.Open("download/test")
     bytes, _ = ioutil.ReadAll(testFile)
-    if "text" != string(bytes) {
-        t.Errorf("download/test file content should be \"text\"")
-    }
+    a.Equal("text", string(bytes))
     _ = testFile.Close()
 }

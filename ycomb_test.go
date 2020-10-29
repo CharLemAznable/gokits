@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "github.com/stretchr/testify/assert"
     "testing"
 )
 
@@ -15,9 +16,7 @@ func TestYComb(test *testing.T) {
         }
     })
     resultFac := fac(10)
-    if 3628800 != resultFac {
-        test.Error("YComb(fac) Error: fac(10) should be 3628800 but ", resultFac)
-    }
+    assert.Equal(test, 3628800, resultFac)
 
     fib := YComb(func(recFunc RecFunc) RecFunc {
         return func(n interface{}) interface{} {
@@ -29,7 +28,5 @@ func TestYComb(test *testing.T) {
         }
     })
     resultFib := fib(10)
-    if 55 != resultFib {
-        test.Error("YComb(fib) Error: fib(10) should be 55 but ", resultFib)
-    }
+    assert.Equal(test, 55, resultFib)
 }

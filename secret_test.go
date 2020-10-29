@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "github.com/stretchr/testify/assert"
     "testing"
 )
 
@@ -10,21 +11,15 @@ const AESCipherKey = "0b4c09247ec02edc"
 
 func TestHmacSha256Base64(t *testing.T) {
     sign := HmacSha256Base64("Abc123", PasswordKey)
-    if "RSbCrv07dc+f9NffWnaz4/p07z0oXL+u6Jtjl7XK6Bg=" != sign {
-        t.Fail()
-    }
+    assert.Equal(t, "RSbCrv07dc+f9NffWnaz4/p07z0oXL+u6Jtjl7XK6Bg=", sign)
 }
 
 func TestAESEncrypt(t *testing.T) {
     encrypted := AESEncrypt("The quick brown fox jumps over the lazy dog", AESCipherKey)
-    if "3781dU72kqM+ulqyVv7aQlEoowO5jjGkTIjNNPKILa06LZ61DrAl7bhFFR20Ioao" != encrypted {
-        t.Fail()
-    }
+    assert.Equal(t, "3781dU72kqM+ulqyVv7aQlEoowO5jjGkTIjNNPKILa06LZ61DrAl7bhFFR20Ioao", encrypted)
 }
 
 func TestAESDecrypt(t *testing.T) {
     decrypted := AESDecrypt("3781dU72kqM+ulqyVv7aQlEoowO5jjGkTIjNNPKILa06LZ61DrAl7bhFFR20Ioao", AESCipherKey)
-    if "The quick brown fox jumps over the lazy dog" != decrypted {
-        t.Fail()
-    }
+    assert.Equal(t, "The quick brown fox jumps over the lazy dog", decrypted)
 }

@@ -13,7 +13,6 @@
 
 .DS_Store
 .idea
-gql_test.go
-gql_conn_test.go
 vendor
 go.sum
+coverage.txt

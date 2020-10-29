@@ -1,97 +1,55 @@
 package gokits
 
 import (
-    "fmt"
+    "github.com/stretchr/testify/assert"
     "os"
     "testing"
 )
 
 func TestNewProperties(t *testing.T) {
+    a := assert.New(t)
     properties := NewProperties()
-    if nil == properties.mapper {
-        t.Fail()
-    }
-    if nil == properties.defaults || 0 != properties.defaults.Size() {
-        t.Fail()
-    }
+    a.NotNil(properties.mapper)
+    a.NotNil(properties.defaults)
+    a.Equal(0, properties.defaults.Size())
 
     file, err := os.Open("properties_test.properties")
-    if err != nil {
-        t.Fail()
-    }
+    a.Nil(err)
     defer func() { _ = file.Close() }()
 
-    if err = properties.Load(file); err != nil {
-        t.Fail()
-    }
+    err = properties.Load(file)
+    a.Nil(err)
 
     properties.List(os.Stdout)
 
-    if properties.GetProperty("redis.hosts") != "127.0.0.1:6379" {
-        t.Fail()
-    }
-    if properties.GetProperty("redis.host") != "127.0.0.1" {
-        t.Fail()
-    }
-    if properties.GetProperty("redis.port") != "6379" {
-        t.Fail()
-    }
-    if properties.GetProperty("static.prefix") != "http://test.fshow.easy-hi.com/fshow-res" {
-        t.Fail()
-    }
-    if properties.GetProperty("attach.imgPrefix") != "http://test.res.fshow.easy-hi.com/images/" {
-        t.Fail()
-    }
-    if properties.GetProperty("root") != "http://test.fshow.easy-hi.com/fshow/" {
-        t.Fail()
-    }
-    if properties.GetProperty("static.version") != "1" {
-        t.Fail()
-    }
-    if properties.GetProperty("mode") != "dev" {
-        t.Fail()
-    }
-    if properties.GetProperty("template.path") != "http://test.fshow.easy-hi.com:8000/fshow-res/dev/modules/" {
-        t.Fail()
-    }
-    if properties.GetProperty("innerResPath.prefix") != "http://test.fshow.easy-hi.com:8000/fshow-res" {
-        t.Fail()
-    }
-    if properties.GetProperty("music.prefix") != "http://test.res.fshow.easy-hi.com/musics/" {
-        t.Fail()
-    }
-    if properties.GetProperty("origin.boss") != "http://127.0.0.1:8017/boss-biz/authorize/check-token" {
-        t.Fail()
-    }
-    if properties.GetProperty("wxconfig") != "http://test.go.easy-hi.com/admin/scene/show/center/1508666666/initWxJs" {
-        t.Fail()
-    }
-    if properties.GetPropertyDefault("wxconfig1", "nonExists") != "nonExists" {
-        t.Fail()
-    }
+    a.Equal("127.0.0.1:6379", properties.GetProperty("redis.hosts"))
+    a.Equal("127.0.0.1", properties.GetProperty("redis.host"))
+    a.Equal("6379", properties.GetProperty("redis.port"))
+    a.Equal("http://test.fshow.easy-hi.com/fshow-res", properties.GetProperty("static.prefix"))
+    a.Equal("http://test.res.fshow.easy-hi.com/images/", properties.GetProperty("attach.imgPrefix"))
+    a.Equal("http://test.fshow.easy-hi.com/fshow/", properties.GetProperty("root"))
+    a.Equal("1", properties.GetProperty("static.version"))
+    a.Equal("dev", properties.GetProperty("mode"))
+    a.Equal("http://test.fshow.easy-hi.com:8000/fshow-res/dev/modules/", properties.GetProperty("template.path"))
+    a.Equal("http://test.fshow.easy-hi.com:8000/fshow-res", properties.GetProperty("innerResPath.prefix"))
+    a.Equal("http://test.res.fshow.easy-hi.com/musics/", properties.GetProperty("music.prefix"))
+    a.Equal("http://127.0.0.1:8017/boss-biz/authorize/check-token", properties.GetProperty("origin.boss"))
+    a.Equal("http://test.go.easy-hi.com/admin/scene/show/center/1508666666/initWxJs", properties.GetProperty("wxconfig"))
+    a.Equal("nonExists", properties.GetPropertyDefault("wxconfig1", "nonExists"))
 
     filename := "properties_out.properties"
     writer, err := os.Create(filename)
-    if err != nil {
-        t.Fail()
-    }
+    a.Nil(err)
     defer func() { _ = writer.Close() }()
     properties.Save(writer, "")
 
     file2, err := os.Open(filename)
-    if err != nil {
-        t.Fail()
-    }
+    a.Nil(err)
     defer func() { _ = file2.Close(); _ = os.Remove(filename) }()
     properties2 := NewProperties()
-    if err = properties2.Load(file2); err != nil {
-        t.Fail()
-    }
+    err = properties2.Load(file2)
+    a.Nil(err)
     for _, name := range properties.StringPropertyNames() {
-        if properties.GetProperty(name) != properties2.GetProperty(name) {
-            fmt.Println(properties.GetProperty(name))
-            fmt.Println(properties2.GetProperty(name))
-            t.Fail()
-        }
+        a.Equal(properties.GetProperty(name), properties2.GetProperty(name))
     }
 }

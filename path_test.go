@@ -1,27 +1,16 @@
 package gokits
 
 import (
+    "github.com/stretchr/testify/assert"
     "testing"
 )
 
 func TestPathJoin(t *testing.T) {
-    if "a/b" != PathJoin("a", "b") {
-        t.Fail()
-    }
+    a := assert.New(t)
 
-    if "/a/b" != PathJoin("/a", "/b") {
-        t.Fail()
-    }
-
-    if "/a/b/" != PathJoin("/a", "/b/") {
-        t.Fail()
-    }
-
-    if "/" != PathJoin("/a", "..") {
-        t.Fail()
-    }
-
-    if "." != PathJoin(".") {
-        t.Fail()
-    }
+    a.Equal("a/b", PathJoin("a", "b"))
+    a.Equal("/a/b", PathJoin("/a", "/b"))
+    a.Equal("/a/b/", PathJoin("/a", "/b/"))
+    a.Equal("/", PathJoin("/a", ".."))
+    a.Equal(".", PathJoin("."))
 }

@@ -1,6 +1,7 @@
 package gokits
 
 import (
+    "github.com/stretchr/testify/assert"
     "io/ioutil"
     "log"
     "net/http"
@@ -9,53 +10,42 @@ import (
 )
 
 func TestHttpReq_Get(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(http.HandlerFunc(
         func(w http.ResponseWriter, r *http.Request) {
             value := r.FormValue("key")
-            if "value" != value {
-                t.Errorf("r.FormValue(\"key\") should be \"value\"")
-            }
+            a.Equal("value", value)
             w.WriteHeader(http.StatusOK)
         }))
     _, err := NewHttpReq(testServer.URL).Params("key", "value").Get()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func TestHttpReq_Post(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(http.HandlerFunc(
         func(w http.ResponseWriter, r *http.Request) {
             value := r.FormValue("key")
-            if "value" != value {
-                t.Errorf("r.FormValue(\"key\") should be \"value\"")
-            }
+            a.Equal("value", value)
             w.WriteHeader(http.StatusOK)
         }))
     _, err := NewHttpReq(testServer.URL).Params("key", "value").Post()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func TestHttpReq_Post_Body(t *testing.T) {
+    a := assert.New(t)
     testServer := httptest.NewServer(http.HandlerFunc(
         func(w http.ResponseWriter, r *http.Request) {
             body, _ := RequestBody(r)
-            if "{\"key\":\"value\"}" != body {
-                t.Errorf("requestBody should be {\"key\":\"value\"}")
-            }
-            if "application/json" != r.Header.Get("Content-Type") {
-                t.Errorf("contentType should be application/json")
-            }
+            a.Equal("{\"key\":\"value\"}", body)
+            a.Equal("application/json", r.Header.Get("Content-Type"))
             w.WriteHeader(http.StatusOK)
         }))
     _, err := NewHttpReq(testServer.URL).
         RequestBody("{\"key\":\"value\"}").
         Prop("Content-Type", "application/json").Post()
-    if nil != err {
-        t.Errorf("Should has no error")
-    }
+    a.Nil(err)
 }
 
 func (httpReq *HttpReq) testGet() (int, string, error) {
