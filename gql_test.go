@@ -24,7 +24,7 @@ func TestNewGql(t *testing.T) {
     result, _ := gql.New().Sql(`select 'x' as "X"`).Query()
     a.Equal("x", result[0]["X"])
 
-    result, _ = gql.New().Sql("select 'xx' where 'x' = ?").Params("x").Query()
+    result, _ = gql.New().Sql("select 'xx' from dual where 'x' = ?").Params("x").Query()
     a.Equal("xx", result[0]["xx"])
 }
 
