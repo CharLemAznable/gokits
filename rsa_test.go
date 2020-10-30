@@ -20,6 +20,11 @@ func TestKeyPair(t *testing.T) {
     plainBytes, _ := DecryptByRSAKeyString(cipherBytes, privateKeyString)
     a.Equal(plainText, string(plainBytes))
 
+    _, err1 := EncryptByRSAKeyString([]byte(plainText), publicKeyString[1:])
+    a.NotNil(err1)
+    _, err2 := DecryptByRSAKeyString(cipherBytes, privateKeyString[1:])
+    a.NotNil(err2)
+
     cipherBytes, _ = EncryptByRSAKey([]byte(plainText), publicKey)
     plainBytes, _ = DecryptByRSAKey(cipherBytes, privateKey)
     a.Equal(plainText, string(plainBytes))
