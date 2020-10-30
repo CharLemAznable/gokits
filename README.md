@@ -9,6 +9,10 @@
 
 Go常用工具包.
 
+##### boolean
+
+  ```string to bool```工具.
+
 ##### cache
 
   重构来自[muesli/cache2go](https://github.com/muesli/cache2go/)
@@ -93,6 +97,10 @@ Go常用工具包.
 ##### random
 
   随机字符串
+  
+##### rsa
+
+  RSA非对称加密算法工具, 包括密钥生成, 公钥加密/私钥解密, 私钥签名/公钥验签.
 
 ##### secret
 
