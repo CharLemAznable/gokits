@@ -34,17 +34,21 @@ func CacheExpireAfterWrite(table string) *CacheTable {
         t, ok = cacheExpireAfterWrite[table]
         // Double check whether the table exists or not.
         if !ok {
-            t = &CacheTable{
-                name:     table,
-                items:    make(map[interface{}]*CacheItem),
-                strategy: ExpireAfterWrite,
-            }
+            t = NewCacheExpireAfterWrite(table)
             cacheExpireAfterWrite[table] = t
         }
         mutexExpireAfterWrite.Unlock()
     }
 
     return t
+}
+
+func NewCacheExpireAfterWrite(table string) *CacheTable {
+    return &CacheTable{
+        name:     table,
+        items:    make(map[interface{}]*CacheItem),
+        strategy: ExpireAfterWrite,
+    }
 }
 
 //noinspection GoUnusedExportedFunction
@@ -58,15 +62,19 @@ func CacheExpireAfterAccess(table string) *CacheTable {
         t, ok = cacheExpireAfterAccess[table]
         // Double check whether the table exists or not.
         if !ok {
-            t = &CacheTable{
-                name:     table,
-                items:    make(map[interface{}]*CacheItem),
-                strategy: ExpireAfterAccess,
-            }
+            t = NewCacheExpireAfterAccess(table)
             cacheExpireAfterAccess[table] = t
         }
         mutexExpireAfterAccess.Unlock()
     }
 
     return t
+}
+
+func NewCacheExpireAfterAccess(table string) *CacheTable {
+    return &CacheTable{
+        name:     table,
+        items:    make(map[interface{}]*CacheItem),
+        strategy: ExpireAfterAccess,
+    }
 }
