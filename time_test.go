@@ -15,4 +15,7 @@ func TestDuration(t *testing.T) {
     testTime := &TestTime{}
     _, _ = toml.DecodeFile("time_test.toml", testTime)
     assert.Equal(t, time.Minute*4+time.Second*2, testTime.Duration.Duration)
+
+    bytes, _ := testTime.Duration.MarshalText()
+    assert.Equal(t, "4m2s", string(bytes))
 }
