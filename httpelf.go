@@ -4,6 +4,7 @@ import (
     "compress/gzip"
     "context"
     "fmt"
+    "github.com/kataras/golog"
     "github.com/tdewolff/minify"
     "github.com/tdewolff/minify/css"
     "github.com/tdewolff/minify/html"
@@ -19,9 +20,9 @@ func DumpRequest(handlerFunc http.HandlerFunc) http.HandlerFunc {
         // Save a copy of this request for debugging.
         requestDump, err := httputil.DumpRequest(request, true)
         if err != nil {
-            _ = LOG.Error(err)
+            golog.Error(err)
         }
-        LOG.Debug(string(requestDump))
+        golog.Debug(string(requestDump))
         handlerFunc(writer, request)
     }
 }

@@ -2,6 +2,7 @@ package gokits
 
 import (
     "fmt"
+    "github.com/kataras/golog"
     "github.com/stretchr/testify/assert"
     "io/ioutil"
     "net/http"
@@ -31,14 +32,14 @@ func TestHttpDownload(t *testing.T) {
             completed = true
         }),
         WithDownloadDidStarted(func(download *HttpDownload) {
-            LOG.Debug("DownloadDidStarted")
+            golog.Debug("DownloadDidStarted")
         }),
         WithDownloadingWithProgress(func(download *HttpDownload, progress float64) {
-            LOG.Debug("Downloading %.2f%%", progress)
+            golog.Debugf("Downloading %.2f%%", progress)
         }),
         WithDownloadingProgressInterval(0),
         WithDownloadDidFinish(func(download *HttpDownload) {
-            LOG.Debug("DownloadDidFinish")
+            golog.Debug("DownloadDidFinish")
             completed = true
         }))
     for !completed {
