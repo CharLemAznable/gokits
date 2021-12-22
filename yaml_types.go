@@ -31,6 +31,8 @@ type YamlNode interface {
 // A YamlMap is a YAML Mapping which maps Strings to Nodes.
 type YamlMap map[string]YamlNode
 
+var _ YamlNode = YamlMap{}
+
 // Key returns the value associeted with the key in the map.
 func (node YamlMap) Key(key string) YamlNode {
     return node[key]
@@ -77,6 +79,8 @@ func (node YamlMap) write(out io.Writer, firstind, nextind int) {
 // A YamlList is a YAML Sequence of Nodes.
 type YamlList []YamlNode
 
+var _ YamlNode = YamlList{}
+
 // GetString the number of items in the YamlList.
 func (node YamlList) Len() int {
     return len(node)
@@ -104,6 +108,8 @@ func (node YamlList) write(out io.Writer, firstind, nextind int) {
 
 // A YamlScalar is a YAML YamlScalar.
 type YamlScalar string
+
+var _ YamlNode = YamlScalar("")
 
 // String returns the string represented by this YamlScalar.
 func (node YamlScalar) String() (string, error) { return string(node), nil }
